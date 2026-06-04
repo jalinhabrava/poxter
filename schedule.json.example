@@ -3,14 +3,22 @@
   "brand": { "slug": "textifai", "name": "TextifAI" },
   "week": { "start_date": "2026-06-08", "end_date": "2026-06-14", "timezone": "Europe/Madrid" },
   "source_context": [],
-  "slots": [{ "id": "slot-1" }],
-  "drafts": [{
-    "external_id": "draft-1",
-    "slot_id": "slot-1",
-    "platform": "x",
-    "format": "thread",
-    "title": "Plan",
-    "body": "Hello",
-    "status": "draft"
-  }]
+  "slots": [
+    { "id": "slot-1", "date": "2026-06-08", "time_local": "09:00", "timezone": "Europe/Madrid" },
+    { "id": "slot-2", "date": "2026-06-09", "time_local": "09:00", "timezone": "Europe/Madrid" },
+    { "id": "slot-3", "date": "2026-06-10", "time_local": "09:00", "timezone": "Europe/Madrid" },
+    { "id": "slot-4", "date": "2026-06-11", "time_local": "09:00", "timezone": "Europe/Madrid" },
+    { "id": "slot-5", "date": "2026-06-12", "time_local": "09:00", "timezone": "Europe/Madrid" },
+    { "id": "slot-6", "date": "2026-06-13", "time_local": "09:00", "timezone": "Europe/Madrid" },
+    { "id": "slot-7", "date": "2026-06-14", "time_local": "09:00", "timezone": "Europe/Madrid" }
+  ],
+  "drafts": [
+    { "external_id": "draft-1", "slot_id": "slot-1", "platform": "x", "format": "thread", "title": "Plan 1", "body": "Hello 1", "status": "draft" },
+    { "external_id": "draft-2", "slot_id": "slot-2", "platform": "x", "format": "thread", "title": "Plan 2", "body": "Hello 2", "status": "draft" },
+    { "external_id": "draft-3", "slot_id": "slot-3", "platform": "x", "format": "thread", "title": "Plan 3", "body": "Hello 3", "status": "needs_review" },
+    { "external_id": "draft-4", "slot_id": "slot-4", "platform": "x", "format": "post", "title": "Plan 4", "body": "Hello 4", "status": "approved" },
+    { "external_id": "draft-5", "slot_id": "slot-5", "platform": "x", "format": "post", "title": "Plan 5", "body": "Hello 5", "status": "draft" },
+    { "external_id": "draft-6", "slot_id": "slot-6", "platform": "x", "format": "post", "title": "Plan 6", "body": "Hello 6", "status": "draft" },
+    { "external_id": "draft-7", "slot_id": "slot-7", "platform": "x", "format": "post", "title": "Plan 7", "body": "Hello 7", "status": "draft" }
+  ]
 }

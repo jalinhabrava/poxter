@@ -21,6 +21,9 @@ model SourceItem {
   id        String   @id @default(cuid())
   brandId   String
   brand     Brand    @relation(fields: [brandId], references: [id])
+  externalId String?
+  kind       String?
+  payload    String?
   createdAt DateTime @default(now())
 }
 
@@ -28,12 +31,28 @@ model Draft {
   id        String   @id @default(cuid())
   brandId   String
   brand     Brand    @relation(fields: [brandId], references: [id])
-  status    String
+  externalId String   @unique
+  slotId     String
+  platform   String
+  format     String
+  title      String
+  body       String?
+  threadPosts String?
+  status     String
+  sourceContext String?
+  scheduleMeta String?
+  scheduledAt DateTime?
+  importedAt  DateTime @default(now())
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model SafetyWarning {
   id        String   @id @default(cuid())
+  draftId   String?
+  brandId   String?
+  message   String
+  payload   String?
   createdAt DateTime @default(now())
 }
 
@@ -48,9 +67,9 @@ model BufferChannelCache {
 }
 
 model ScheduledPost {
-  id            String   @id @default(cuid())
+  id             String   @id @default(cuid())
   externalStatus String
-  createdAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
 }
 
 model PublishActionLog {

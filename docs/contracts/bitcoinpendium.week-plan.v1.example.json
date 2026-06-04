@@ -3,14 +3,12 @@
   "brand": { "slug": "bitcoinpendium", "name": "David Bitcoinpendium" },
   "week": { "start_date": "2026-06-08", "end_date": "2026-06-14", "timezone": "Europe/Madrid" },
   "source_context": [],
-  "slots": [{ "id": "slot-1" }],
-  "drafts": [{
-    "external_id": "draft-1",
-    "slot_id": "slot-1",
-    "platform": "x",
-    "format": "post",
-    "title": "Bitcoin note",
-    "body": "Content",
-    "status": "draft"
-  }]
+  "slots": [
+    { "id": "slot-1", "date": "2026-06-08", "time_local": "11:00", "timezone": "Europe/Madrid" },
+    { "id": "slot-2", "date": "2026-06-10", "time_local": "11:00", "timezone": "Europe/Madrid" }
+  ],
+  "drafts": [
+    { "external_id": "btc-draft-1", "slot_id": "slot-1", "platform": "x", "format": "post", "title": "Bitcoin note", "body": "Content 1", "status": "draft" },
+    { "external_id": "btc-draft-2", "slot_id": "slot-2", "platform": "x", "format": "post", "title": "Bitcoin note 2", "body": "Content 2", "status": "approved" }
+  ]
 }

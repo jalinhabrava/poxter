@@ -40,18 +40,38 @@ CREATE UNIQUE INDEX IF NOT EXISTS "Brand_slug_key" ON "Brand"("slug");
 CREATE TABLE IF NOT EXISTS "SourceItem" (
   "id" TEXT NOT NULL PRIMARY KEY,
   "brandId" TEXT NOT NULL,
+  "externalId" TEXT,
+  "kind" TEXT,
+  "payload" TEXT,
   "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "SourceItem_brandId_fkey" FOREIGN KEY ("brandId") REFERENCES "Brand" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "Draft" (
   "id" TEXT NOT NULL PRIMARY KEY,
   "brandId" TEXT NOT NULL,
+  "externalId" TEXT NOT NULL,
+  "slotId" TEXT NOT NULL,
+  "platform" TEXT NOT NULL,
+  "format" TEXT NOT NULL,
+  "title" TEXT NOT NULL,
+  "body" TEXT,
+  "threadPosts" TEXT,
   "status" TEXT NOT NULL,
+  "sourceContext" TEXT,
+  "scheduleMeta" TEXT,
+  "scheduledAt" DATETIME,
+  "importedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL,
   CONSTRAINT "Draft_brandId_fkey" FOREIGN KEY ("brandId") REFERENCES "Brand" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
+CREATE UNIQUE INDEX IF NOT EXISTS "Draft_externalId_key" ON "Draft"("externalId");
 CREATE TABLE IF NOT EXISTS "SafetyWarning" (
   "id" TEXT NOT NULL PRIMARY KEY,
+  "draftId" TEXT,
+  "brandId" TEXT,
+  "message" TEXT NOT NULL,
+  "payload" TEXT,
   "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS "BufferChannelMapping" (
