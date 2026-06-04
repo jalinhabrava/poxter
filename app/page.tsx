@@ -353,6 +353,7 @@ export default function HomePage() {
   function handleSchedule() {
     if (!canSchedule) return;
     setActionMessage('Scheduling not wired in this slice. No Buffer call made.');
+    void loadCalendar();
   }
 
   return (
