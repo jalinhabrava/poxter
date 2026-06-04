@@ -20,9 +20,9 @@ describe('week-plan import service', () => {
   });
 
   it('imports Bitcoinpendium under bitcoinpendium', async () => {
-    const result = await importWeekPlan(bitcoinPlan);
-    expect(result.ok).toBe(true);
-    const drafts = await prisma.draft.findMany({ include: { brand: true } });
+    await importWeekPlan(bitcoinPlan);
+    const drafts = await prisma.draft.findMany({ where: { brand: { slug: 'bitcoinpendium' } }, include: { brand: true } });
+    expect(drafts).toHaveLength(2);
     expect(drafts.every((draft) => draft.brand.slug === 'bitcoinpendium')).toBe(true);
   });
 
@@ -61,7 +61,7 @@ describe('week-plan import service', () => {
     await importWeekPlan(bitcoinPlan);
     await importWeekPlan({ ...textifaiPlan, drafts: textifaiPlan.drafts.slice(0, 2) }, 'replace_week');
     expect(await prisma.draft.count({ where: { brand: { slug: 'textifai' } } })).toBe(2);
-    expect(await prisma.draft.count({ where: { brand: { slug: 'bitcoinpendium' } } })).toBeGreaterThan(0);
+    expect(await prisma.draft.count({ where: { brand: { slug: 'bitcoinpendium' } } })).toBe(2);
   });
 
   it('persists source context and safety warnings if present', async () => {
