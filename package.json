@@ -10,7 +10,8 @@
     "prisma:generate": "prisma generate",
     "prisma:seed": "node prisma/seed.mjs",
     "test": "vitest run",
-    "build": "next build"
+    "build": "next build",
+    "prisma": "node scripts/dev/prisma-wrapper.mjs"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
