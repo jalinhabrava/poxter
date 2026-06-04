@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Brand {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  sourceItems SourceItem[]
+  drafts      Draft[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SourceItem {
+  id        String   @id @default(cuid())
+  brandId   String
+  brand     Brand    @relation(fields: [brandId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Draft {
+  id        String   @id @default(cuid())
+  brandId   String
+  brand     Brand    @relation(fields: [brandId], references: [id])
+  status    String
+  createdAt DateTime @default(now())
+}
+
+model SafetyWarning {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+}
+
+model BufferChannelMapping {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+}
+
+model BufferChannelCache {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+}
+
+model ScheduledPost {
+  id            String   @id @default(cuid())
+  externalStatus String
+  createdAt     DateTime @default(now())
+}
+
+model PublishActionLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+}

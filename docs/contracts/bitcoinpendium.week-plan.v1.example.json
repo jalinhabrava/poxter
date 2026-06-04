@@ -1,0 +1,16 @@
+{
+  "schema_version": "social-controller.week-plan.v1",
+  "brand": { "slug": "bitcoinpendium", "name": "David Bitcoinpendium" },
+  "week": { "start_date": "2026-06-08", "end_date": "2026-06-14", "timezone": "Europe/Madrid" },
+  "source_context": [],
+  "slots": [{ "id": "slot-1" }],
+  "drafts": [{
+    "external_id": "draft-1",
+    "slot_id": "slot-1",
+    "platform": "x",
+    "format": "post",
+    "title": "Bitcoin note",
+    "body": "Content",
+    "status": "draft"
+  }]
+}
