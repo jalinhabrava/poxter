@@ -20,12 +20,14 @@
     "react-dom": "latest"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.0",
     "@testing-library/react": "latest",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "jsdom": "latest",
     "prisma": "^5.22.0",
+    "tailwindcss": "^4.3.0",
     "typescript": "latest",
     "vitest": "latest"
   },

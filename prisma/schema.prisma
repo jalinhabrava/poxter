@@ -68,7 +68,13 @@ model BufferChannelCache {
 
 model ScheduledPost {
   id             String   @id @default(cuid())
+  brandSlug      String
+  draftId        String?
+  title          String
+  body           String
+  scheduledAt    DateTime
   externalStatus String
+  payload        String?
   createdAt      DateTime @default(now())
 }
 

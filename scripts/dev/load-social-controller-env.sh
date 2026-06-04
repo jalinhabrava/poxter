@@ -11,4 +11,6 @@ if [ -f "$ENV_FILE" ]; then
 else
   echo "Social Controller env file missing: $ENV_FILE" >&2
 fi
-export DATABASE_URL="${DATABASE_URL:-file:$REBUILD_ROOT/dev.db}"
+if [ -z "${DATABASE_URL:-}" ] || [[ "${DATABASE_URL}" == *"/Social Controller/"* ]]; then
+  export DATABASE_URL="file:$REBUILD_ROOT/dev.db"
+fi

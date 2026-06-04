@@ -34,8 +34,9 @@ describe('week plan contract', () => {
     expect(validateWeekPlanContract(duplicate).ok).toBe(false);
   });
 
-  it('rejects invalid slot reference', () => {
-    expect(validateWeekPlanContract({ ...textifaiPlan, drafts: [{ ...textifaiPlan.drafts[0], slot_id: 'bad' }] }).ok).toBe(false);
+  it('does not require fixed slots', () => {
+    expect(validateWeekPlanContract({ ...textifaiPlan, drafts: [{ ...textifaiPlan.drafts[0], slot_id: '' }] }).ok).toBe(true);
+    expect(validateWeekPlanContract({ ...textifaiPlan, drafts: [{ ...textifaiPlan.drafts[0], slot_id: 'bad' }] }).ok).toBe(true);
   });
 
   it('requires body or thread_posts', () => {

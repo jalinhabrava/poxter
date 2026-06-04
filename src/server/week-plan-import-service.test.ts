@@ -43,10 +43,16 @@ describe('week-plan import service', () => {
     expect(result.ok).toBe(false);
   });
 
-  it('rejects invalid slot reference', async () => {
-    const invalid = { ...textifaiPlan, drafts: textifaiPlan.drafts.map((draft: any) => ({ ...draft, slot_id: 'bad' })) };
-    const result = await importWeekPlan(invalid);
-    expect(result.ok).toBe(false);
+  it('accepts schedule slots defined by the JSON', async () => {
+    const custom = {
+      ...textifaiPlan,
+      slots: [{ id: 'morning', date: '2026-06-08', time_local: '09:00', timezone: 'Europe/Madrid' }],
+      drafts: [{ ...textifaiPlan.drafts[0], slot_id: 'morning' }]
+    };
+    const result = await importWeekPlan(custom);
+    expect(result).toEqual({ ok: true, imported: 1 });
+    const imported = await prisma.draft.findUnique({ where: { externalId: custom.drafts[0].external_id } });
+    expect(imported?.slotId).toBe('morning');
   });
 
   it('is idempotent by external id', async () => {

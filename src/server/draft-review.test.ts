@@ -36,10 +36,10 @@ describe('draft review workflow', () => {
 
   it('approve reject needs_review back_to_draft work', async () => {
     const draft = await prisma.draft.findFirstOrThrow({ where: { externalId: 'draft-1' } });
-    expect((await setDraftStatus(draft.id, 'approved')).draft.status).toBe('approved');
-    expect((await setDraftStatus(draft.id, 'rejected')).draft.status).toBe('rejected');
-    expect((await setDraftStatus(draft.id, 'needs_review')).draft.status).toBe('needs_review');
-    expect((await setDraftStatus(draft.id, 'draft')).draft.status).toBe('draft');
+    expect((await setDraftStatus(draft.id, 'approved')).draft!.status).toBe('approved');
+    expect((await setDraftStatus(draft.id, 'rejected')).draft!.status).toBe('rejected');
+    expect((await setDraftStatus(draft.id, 'needs_review')).draft!.status).toBe('needs_review');
+    expect((await setDraftStatus(draft.id, 'draft')).draft!.status).toBe('draft');
   });
 
   it('invalid status transition rejected', async () => {

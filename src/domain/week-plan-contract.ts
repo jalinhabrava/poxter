@@ -17,8 +17,6 @@ export function validateWeekPlanContract(input: unknown) {
   if (!plan?.week?.end_date) errors.push('week.end_date');
   if (!plan?.week?.timezone) errors.push('week.timezone');
 
-  const slots = Array.isArray(plan?.slots) ? plan.slots : [];
-  const slotIds = new Set(slots.map((slot: any) => slot?.id).filter(Boolean));
   const drafts = Array.isArray(plan?.drafts) ? plan.drafts : [];
   const externalIds = new Set<string>();
 
@@ -26,7 +24,6 @@ export function validateWeekPlanContract(input: unknown) {
     if (!draft?.external_id) errors.push('draft.external_id');
     if (draft?.external_id && externalIds.has(draft.external_id)) errors.push('draft.external_id.duplicate');
     if (draft?.external_id) externalIds.add(draft.external_id);
-    if (!slotIds.has(draft?.slot_id)) errors.push('draft.slot_id');
     if (!draft?.platform) errors.push('draft.platform');
     if (!draft?.format) errors.push('draft.format');
     if (!draft?.title) errors.push('draft.title');

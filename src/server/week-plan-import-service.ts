@@ -9,11 +9,39 @@ function asArray(value: unknown) {
   return Array.isArray(value) ? value : [];
 }
 
-function computeScheduledAt(slot: any) {
+function computeScheduledAt(slot: any, fallbackTimezone?: string | null) {
   if (!slot?.date || !slot?.time_local) return null;
-  const raw = slot.timezone && slot.timezone !== 'UTC' ? `${slot.date}T${slot.time_local}:00` : `${slot.date}T${slot.time_local}:00Z`;
+  const timezone = slot.timezone ?? fallbackTimezone ?? null;
+  const raw = timezone && timezone !== 'UTC' ? `${slot.date}T${slot.time_local}:00` : `${slot.date}T${slot.time_local}:00Z`;
   const date = new Date(raw);
   return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function resolveDraftSchedule(draft: any, slotsById: Map<string, any>, fallbackWeekTimezone?: string | null) {
+  const slot = typeof draft?.slot_id === 'string' ? slotsById.get(draft.slot_id) ?? null : null;
+  if (slot) {
+    const scheduledAt = computeScheduledAt(slot, fallbackWeekTimezone);
+    return {
+      slotId: draft.slot_id,
+      date: slot.date ?? null,
+      timeLocal: slot.time_local ?? null,
+      timezone: slot.timezone ?? fallbackWeekTimezone ?? null,
+      scheduledAt: scheduledAt ? scheduledAt.toISOString() : null
+    };
+  }
+
+  const fallbackSlot = draft?.slot ?? draft?.schedule ?? draft?.schedule_slot ?? null;
+  const fallbackDate = fallbackSlot?.date ?? draft?.scheduled_date ?? draft?.date ?? null;
+  const fallbackTime = fallbackSlot?.time_local ?? draft?.scheduled_time ?? draft?.time_local ?? null;
+  const fallbackTimezone = fallbackSlot?.timezone ?? draft?.timezone ?? fallbackWeekTimezone ?? null;
+  const scheduledAt = computeScheduledAt({ date: fallbackDate, time_local: fallbackTime, timezone: fallbackTimezone }, fallbackWeekTimezone);
+  return {
+    slotId: draft?.slot_id ?? null,
+    date: fallbackDate,
+    timeLocal: fallbackTime,
+    timezone: fallbackTimezone,
+    scheduledAt: scheduledAt ? scheduledAt.toISOString() : null
+  };
 }
 
 export async function importWeekPlan(input: unknown, mode: ImportMode = 'upsert_by_external_id') {
@@ -58,15 +86,8 @@ export async function importWeekPlan(input: unknown, mode: ImportMode = 'upsert_
   }
 
   for (const draft of drafts) {
-    const slot = slotById.get(draft.slot_id) ?? null;
-    const scheduledAt = computeScheduledAt(slot);
-    const scheduleMeta = {
-      slotId: draft.slot_id,
-      date: slot?.date ?? null,
-      timeLocal: slot?.time_local ?? null,
-      timezone: slot?.timezone ?? plan.week?.timezone ?? null,
-      scheduledAt: scheduledAt ? scheduledAt.toISOString() : null
-    };
+    const scheduleMeta = resolveDraftSchedule(draft, slotById, plan.week?.timezone ?? null);
+    const scheduledAt = scheduleMeta.scheduledAt ? new Date(scheduleMeta.scheduledAt) : null;
     const data = {
       brandId: brand.id,
       externalId: draft.external_id,
