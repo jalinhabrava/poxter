@@ -2,7 +2,7 @@
 
 ## Executive summary
 
-**PUBLIC_RELEASE_READY: safe_to_publish_now**
+**PUBLIC_RELEASE_READY: yes_after_minor_cleanup**
 
 PoXter now has the OSS baseline: license, community docs, CI, issue/PR templates, portable paths, and a public-facing README. Private brand fixtures were removed from active repo content; remaining work is deployment hardening before any public exposure.
 
@@ -44,7 +44,7 @@ Notes:
 
 ## Final recommendation
 
-**RECOMMENDATION: safe_to_publish_now**
+**RECOMMENDATION: public_after_minor_cleanup**
 
 PoXter meets the public open-source prep baseline. Keep repo private until the requested visibility flip is performed separately.
 
@@ -56,8 +56,8 @@ PoXter meets the public open-source prep baseline. Keep repo private until the r
 
 ### Results
 
-- `PUBLIC_RELEASE_READY: safe_to_publish_now`
-- `RECOMMENDATION: safe_to_publish_now`
+- `PUBLIC_RELEASE_READY: yes_after_minor_cleanup`
+- `RECOMMENDATION: public_after_minor_cleanup`
 
 ### Scan summary
 
@@ -68,12 +68,12 @@ PoXter meets the public open-source prep baseline. Keep repo private until the r
 - Active brand fixtures and UI tests use generic demo names only.
 - `config/brands.example.json` uses only `Demo Brand`, so private brands are not active defaults.
 - README and SECURITY already warn about local-first use, Buffer gating, and public exposure hardening.
-- CI workflow now installs pnpm before setup-node cache resolution.
+- CI workflow now installs pnpm before setup-node cache resolution and was updated to Node 22 for pnpm 11 compatibility.
 - `pnpm check:poxter` passed.
 - No Buffer call happened.
 
 ### Remaining risks
 
 - Private brand profile files were removed from tracked repo content; `brands/demo-brand.md` is the public fixture.
-- CI should run from clean clone without local config or Buffer credentials.
+- CI should run from clean clone without local config or Buffer credentials; latest post-push run is still pending confirmation.
 - Public deployment still needs authentication, HTTPS, and reverse-proxy hardening before any external exposure.
