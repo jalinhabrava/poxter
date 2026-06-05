@@ -188,10 +188,10 @@ export default function HomePage() {
   useEffect(() => { void loadBufferSettings(); }, [selectedBrand]);
   useEffect(() => { setBufferSessionConnected(Boolean(bufferSettings?.connected)); }, [bufferSettings?.connected]);
   useEffect(() => {
-    const savedBrand = window.localStorage.getItem('social-controller.selected-brand');
+    const savedBrand = window.localStorage.getItem('poxter.selected-brand');
     if (savedBrand && brands.some((brand) => brand.slug === savedBrand)) setSelectedBrand(savedBrand as (typeof brands)[number]['slug']);
   }, []);
-  useEffect(() => { window.localStorage.setItem('social-controller.selected-brand', selectedBrand); }, [selectedBrand]);
+  useEffect(() => { window.localStorage.setItem('poxter.selected-brand', selectedBrand); }, [selectedBrand]);
   useEffect(() => {
     if (!selectedDraft) { setEditorTitle(''); setEditorBody(''); return; }
     setSelectedDraftId(selectedDraft.id);
@@ -327,7 +327,7 @@ export default function HomePage() {
     <main className="min-h-screen bg-[#f3f0ea] text-[#211d18]">
       <div className="mx-auto flex min-h-screen max-w-[1720px] flex-col px-6 pb-6 pt-4 lg:px-8">
         <header className="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-[28px] border border-[#ddd4c8] bg-[#faf8f4] px-5 py-4 shadow-[0_12px_30px_rgba(60,40,20,0.08)]">
-          <div className="flex items-center gap-4"><div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#3a3837] text-lg font-semibold text-white">SC</div><p className="m-0 text-[15px] font-semibold tracking-[0.14em] text-[#6d6255]">Social Controller</p></div>
+          <div className="flex items-center gap-4"><div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#3a3837] text-lg font-semibold text-white">PX</div><p className="m-0 text-[15px] font-semibold tracking-[0.14em] text-[#6d6255]">PoXter</p></div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <StatusPill label={`API: ${apiHealthy ? 'Operational' : 'Error'}`} tone={apiHealthy ? 'ok' : 'warn'} />
             <StatusPill label={`Buffer: ${bufferConnected ? 'Connected' : bufferSettings?.configured ? 'Configured' : 'Disconnected'}`} tone={bufferConnected ? 'ok' : bufferSettings?.configured ? 'warn' : 'muted'} />

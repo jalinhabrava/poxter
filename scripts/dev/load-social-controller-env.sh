@@ -9,8 +9,8 @@ if [ -f "$ENV_FILE" ]; then
   source "$ENV_FILE"
   set +a
 else
-  echo "Social Controller env file missing: $ENV_FILE" >&2
+  echo "PoXter env file missing: $ENV_FILE" >&2
 fi
-if [ -z "${DATABASE_URL:-}" ] || [[ "${DATABASE_URL}" == *"/Social Controller/"* ]]; then
+if [ -z "${DATABASE_URL:-}" ] || [[ "${DATABASE_URL}" == *"/Social Controller/"* ]] || [[ "${DATABASE_URL}" == *"/social-controller-rebuild/"* ]]; then
   export DATABASE_URL="file:$REBUILD_ROOT/dev.db"
 fi

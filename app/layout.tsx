@@ -2,8 +2,8 @@ import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata = {
-  title: 'Social Controller',
-  description: 'Local social planning controller'
+  title: 'PoXter',
+  description: 'PoXter local social planning controller'
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
