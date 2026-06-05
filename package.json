@@ -33,5 +33,6 @@
   },
   "prisma": {
     "seed": "node prisma/seed.mjs"
-  }
+  },
+  "packageManager": "pnpm@11.3.0"
 }

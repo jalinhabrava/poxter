@@ -74,3 +74,7 @@ Notes:
 - Keep private brand config outside repo.
 - Existing private installs stay working without DB reset.
 - Week-plan JSON must use configured `brand.slug` and matching `brand.name`.
+
+## License
+
+MIT
