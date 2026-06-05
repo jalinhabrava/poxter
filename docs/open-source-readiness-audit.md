@@ -47,3 +47,33 @@ Notes:
 **RECOMMENDATION: public_after_cleanup**
 
 PoXter meets the public open-source prep baseline, but keep repo private until the final content scan and deployment hardening are done.
+
+## OSR-6 final go/no-go scan
+
+- Repo: `https://github.com/jalinhabrava/poxter`
+- Branch: `rebuild-split`
+- Latest commit: `8cfda2d` `docs: finish open source release prep`
+
+### Results
+
+- `PUBLIC_RELEASE_READY: yes_after_minor_cleanup`
+- `RECOMMENDATION: public_after_minor_cleanup`
+
+### Scan summary
+
+- Repo state clean on `rebuild-split`.
+- Repo visibility still private.
+- No tracked `.env`, `.local`, DB, `node_modules`, or `.next` files found.
+- Secret scan found only placeholders, tests, docs warnings, and guarded runtime references; no live secret value exposed.
+- Private brand names still exist in `brands/*.md`, `src/dashboard-ui.test.tsx`, and historical docs/tests.
+- `config/brands.example.json` uses only `Demo Brand`, so private brands are not active defaults.
+- README and SECURITY already warn about local-first use, Buffer gating, and public exposure hardening.
+- CI run history exists for `rebuild-split`, but recent runs failed.
+- `pnpm check:poxter` passed.
+- No Buffer call happened.
+
+### Remaining risks
+
+- `brands/bitcoinpendium.md`, `brands/textifai.md`, and `brands/ont.md` remain private naming artifacts. They are not active defaults, but genericizing them before public flip would reduce private context.
+- CI workflow on GitHub currently shows recent failures; follow-up needed before release, but not a hard blocker for this audit because local verification passed.
+- Public deployment still needs authentication, HTTPS, and reverse-proxy hardening before any external exposure.
