@@ -26,7 +26,7 @@ describe('bootstrap smoke', () => {
     expect(existsSync(`${root}/scripts/dev/load-social-controller-env.sh`)).toBe(false);
     const loader = readFileSync(`${root}/scripts/dev/load-poxter-env.sh`, 'utf8');
     expect(loader).toContain('~/.config/poxter/env'.replace('~', '$HOME'));
-    expect(loader).toContain('PoXter env file missing');
+    expect(loader).toContain('Optional local env file not found; using repo-local defaults.');
     expect(loader).toContain('POXTER_HOST');
     expect(loader).toContain('POXTER_PORT');
     expect(loader).not.toContain('BUFFER_API_KEY');

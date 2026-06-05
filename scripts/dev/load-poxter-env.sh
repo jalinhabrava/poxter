@@ -8,7 +8,7 @@ if [ -f "$ENV_FILE" ]; then
   source "$ENV_FILE"
   set +a
 else
-  echo "PoXter env file missing: $ENV_FILE" >&2
+  echo "Optional local env file not found; using repo-local defaults." >&2
 fi
 export DATABASE_URL="${DATABASE_URL:-file:${REPO_ROOT}/dev.db}"
 export POXTER_HOST="${POXTER_HOST:-0.0.0.0}"
