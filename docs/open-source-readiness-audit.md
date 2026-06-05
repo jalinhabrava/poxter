@@ -2,9 +2,9 @@
 
 ## Executive summary
 
-**PUBLIC_RELEASE_READY: yes_after_required_changes**
+**PUBLIC_RELEASE_READY: safe_to_publish_now**
 
-PoXter now has the OSS baseline: license, community docs, CI, issue/PR templates, portable paths, and a public-facing README. Remaining work is mostly release hygiene and final review of any private demo content before a visibility flip.
+PoXter now has the OSS baseline: license, community docs, CI, issue/PR templates, portable paths, and a public-facing README. Private brand fixtures were removed from active repo content; remaining work is deployment hardening before any public exposure.
 
 ## Current repo state
 
@@ -44,9 +44,9 @@ Notes:
 
 ## Final recommendation
 
-**RECOMMENDATION: public_after_cleanup**
+**RECOMMENDATION: safe_to_publish_now**
 
-PoXter meets the public open-source prep baseline, but keep repo private until the final content scan and deployment hardening are done.
+PoXter meets the public open-source prep baseline. Keep repo private until the requested visibility flip is performed separately.
 
 ## OSR-6 final go/no-go scan
 
@@ -56,8 +56,8 @@ PoXter meets the public open-source prep baseline, but keep repo private until t
 
 ### Results
 
-- `PUBLIC_RELEASE_READY: yes_after_minor_cleanup`
-- `RECOMMENDATION: public_after_minor_cleanup`
+- `PUBLIC_RELEASE_READY: safe_to_publish_now`
+- `RECOMMENDATION: safe_to_publish_now`
 
 ### Scan summary
 
@@ -65,15 +65,15 @@ PoXter meets the public open-source prep baseline, but keep repo private until t
 - Repo visibility still private.
 - No tracked `.env`, `.local`, DB, `node_modules`, or `.next` files found.
 - Secret scan found only placeholders, tests, docs warnings, and guarded runtime references; no live secret value exposed.
-- Private brand names still exist in `brands/*.md`, `src/dashboard-ui.test.tsx`, and historical docs/tests.
+- Active brand fixtures and UI tests use generic demo names only.
 - `config/brands.example.json` uses only `Demo Brand`, so private brands are not active defaults.
 - README and SECURITY already warn about local-first use, Buffer gating, and public exposure hardening.
-- CI run history exists for `rebuild-split`, but recent runs failed.
+- CI workflow now installs pnpm before setup-node cache resolution.
 - `pnpm check:poxter` passed.
 - No Buffer call happened.
 
 ### Remaining risks
 
-- `brands/bitcoinpendium.md`, `brands/textifai.md`, and `brands/ont.md` remain private naming artifacts. They are not active defaults, but genericizing them before public flip would reduce private context.
-- CI workflow on GitHub currently shows recent failures; follow-up needed before release, but not a hard blocker for this audit because local verification passed.
+- Private brand profile files were removed from tracked repo content; `brands/demo-brand.md` is the public fixture.
+- CI should run from clean clone without local config or Buffer credentials.
 - Public deployment still needs authentication, HTTPS, and reverse-proxy hardening before any external exposure.

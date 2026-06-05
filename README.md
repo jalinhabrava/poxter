@@ -28,8 +28,11 @@ PoXter is a local-first publishing workflow for reviewing week plans, drafting p
 - Local-first SQLite data store by default.
 - `BUFFER_API_KEY` only needed for live Buffer actions.
 - Dry-run, import, and review stay local.
-- Private brand config stays in `$HOME/.config/poxter/brands.local.json`.
 - Never commit `.env`, `.local`, DB files, generated files, or secrets.
+
+Default public repo uses `config/brands.example.json`.
+Private brands stay in `$HOME/.config/poxter/brands.local.json` or `POXTER_BRANDS_FILE`.
+Never commit private brand names, channel IDs, `.env`, `.local`, DB files, generated files, or secrets.
 
 ## Quickstart
 
@@ -58,7 +61,11 @@ Optional private brands file:
 
 ```bash
 cat > "$HOME/.config/poxter/brands.local.json" <<'EOF2'
-{}
+{
+  "brands": [
+    { "slug": "demo-brand", "name": "Demo Brand", "timezone": "Europe/Madrid", "platforms": ["x"] }
+  ]
+}
 EOF2
 ```
 

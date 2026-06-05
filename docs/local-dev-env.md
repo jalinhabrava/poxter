@@ -32,6 +32,6 @@ Brand resolution order:
 
 Migration note:
 
-- Existing private install is preserved with `$HOME/.config/poxter/brands.local.json`.
+- Existing private installs are preserved by `$HOME/.config/poxter/brands.local.json`; this file is outside the repo and must not be committed.
 - No DB reset required.
-- Do not commit private brand config.
+- Do not commit private brand config, real Buffer channel IDs, or local machine paths.

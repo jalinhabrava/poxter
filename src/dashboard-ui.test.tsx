@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import HomePage from '../app/page';
 
 const drafts = [
-  { id: 'draft-1', externalId: 'external-1', brandSlug: 'textifai', title: 'Bitcoin Monday', body: 'Start the week with a reminder.', status: 'draft', scheduledAt: null, scheduleMeta: { date: '2026-06-08', time_local: '09:00', timezone: 'Europe/Madrid' }, sourceContext: null },
-  { id: 'draft-2', externalId: 'external-2', brandSlug: 'textifai', title: 'Stack Stats', body: 'Small amounts. Consistent habit.', status: 'approved', scheduledAt: null, scheduleMeta: { date: '2026-06-09', time_local: '09:00', timezone: 'Europe/Madrid' }, sourceContext: null }
+  { id: 'draft-1', externalId: 'external-1', brandSlug: 'demo-brand', title: 'Bitcoin Monday', body: 'Start the week with a reminder.', status: 'draft', scheduledAt: null, scheduleMeta: { date: '2026-06-08', time_local: '09:00', timezone: 'Europe/Madrid' }, sourceContext: null },
+  { id: 'draft-2', externalId: 'external-2', brandSlug: 'demo-brand', title: 'Stack Stats', body: 'Small amounts. Consistent habit.', status: 'approved', scheduledAt: null, scheduleMeta: { date: '2026-06-09', time_local: '09:00', timezone: 'Europe/Madrid' }, sourceContext: null }
 ];
 
 function jsonResponse(body: unknown, status = 200) {
@@ -14,7 +14,7 @@ function jsonResponse(body: unknown, status = 200) {
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL) => {
     const url = input.toString();
-    if (url === '/api/brands') return jsonResponse({ ok: true, brands: [{ slug: 'textifai', name: 'TextifAI' }, { slug: 'ont', name: 'OnT' }, { slug: 'bitcoinpendium', name: 'David Bitcoinpendium' }] });
+    if (url === '/api/brands') return jsonResponse({ ok: true, brands: [{ slug: 'demo-brand', name: 'Demo Brand' }, { slug: 'fiction-studio', name: 'Fiction Studio' }, { slug: 'bitcoin-notes', name: 'Bitcoin Notes' }] });
     if (url === '/api/settings/buffer') return jsonResponse({ ok: true, configured: false, mappings: [], channels: [] });
     if (url === '/api/settings/buffer/refresh-channels') return jsonResponse({ ok: true, configured: false, mappings: [], channels: [] });
     if (url.startsWith('/api/drafts?brandSlug=')) return jsonResponse({ ok: true, drafts });
@@ -36,9 +36,9 @@ describe('phase 4 dashboard UI', () => {
   it('renders three-zone review dashboard with all brands', async () => {
     render(<HomePage />);
     await screen.findByText('Brand switcher');
-    await screen.findByText('TextifAI');
-    expect(screen.getByText('OnT')).toBeTruthy();
-    expect(screen.getAllByText('David Bitcoinpendium').length).toBeGreaterThan(0);
+    await screen.findByText('Demo Brand');
+    expect(screen.getByText('Fiction Studio')).toBeTruthy();
+    expect(screen.getAllByText('Bitcoin Notes').length).toBeGreaterThan(0);
   });
 
   it('selecting a draft updates editor content and counter', async () => {
@@ -68,7 +68,7 @@ describe('phase 4 dashboard UI', () => {
     const allReviewed = drafts.map((draft) => ({ ...draft, status: 'approved' }));
     vi.mocked(fetch).mockImplementation((input: RequestInfo | URL) => {
       const url = input.toString();
-      if (url === '/api/brands') return jsonResponse({ ok: true, brands: [{ slug: 'textifai', name: 'TextifAI' }, { slug: 'ont', name: 'OnT' }, { slug: 'bitcoinpendium', name: 'David Bitcoinpendium' }] });
+      if (url === '/api/brands') return jsonResponse({ ok: true, brands: [{ slug: 'demo-brand', name: 'Demo Brand' }, { slug: 'fiction-studio', name: 'Fiction Studio' }, { slug: 'bitcoin-notes', name: 'Bitcoin Notes' }] });
       if (url.startsWith('/api/drafts?brandSlug=')) return jsonResponse({ ok: true, drafts: allReviewed });
       if (url.endsWith('/dry-run')) {
         const draft = allReviewed.find((item) => url.includes(item.id))!;
@@ -90,8 +90,8 @@ describe('phase 4 dashboard UI', () => {
     const allReviewed = drafts.map((draft) => ({ ...draft, status: 'approved' }));
     vi.mocked(fetch).mockImplementation((input: RequestInfo | URL) => {
       const url = input.toString();
-      if (url === '/api/brands') return jsonResponse({ ok: true, brands: [{ slug: 'textifai', name: 'TextifAI' }, { slug: 'ont', name: 'OnT' }, { slug: 'bitcoinpendium', name: 'David Bitcoinpendium' }] });
-      if (url === '/api/settings/buffer') return jsonResponse({ ok: true, configured: true, connected: true, mappings: [{ brandSlug: 'textifai', channelId: 'ch-1', channelName: 'TextifAI Queue' }], channels: [{ id: 'ch-1', name: 'TextifAI Queue' }] });
+      if (url === '/api/brands') return jsonResponse({ ok: true, brands: [{ slug: 'demo-brand', name: 'Demo Brand' }, { slug: 'fiction-studio', name: 'Fiction Studio' }, { slug: 'bitcoin-notes', name: 'Bitcoin Notes' }] });
+      if (url === '/api/settings/buffer') return jsonResponse({ ok: true, configured: true, connected: true, mappings: [{ brandSlug: 'demo-brand', channelId: 'ch-1', channelName: 'Demo Brand Queue' }], channels: [{ id: 'ch-1', name: 'Demo Brand Queue' }] });
       if (url.startsWith('/api/drafts?brandSlug=')) return jsonResponse({ ok: true, drafts: allReviewed });
       if (url.endsWith('/dry-run')) return jsonResponse({ ok: true, dryRun: true, bufferCalled: false, publishText: 'Body only', characterCount: 9, limit: 280, draft: allReviewed[0] });
       if (url === '/api/scheduled-posts') return jsonResponse({ ok: true, scheduled: 2 });
