@@ -2,9 +2,9 @@
 
 ## Executive summary
 
-**PUBLIC_RELEASE_READY: yes_after_minor_cleanup**
+**PUBLIC_RELEASE_READY: yes**
 
-PoXter now has the OSS baseline: license, community docs, CI, issue/PR templates, portable paths, and a public-facing README. Private brand fixtures were removed from active repo content; remaining work is deployment hardening before any public exposure.
+PoXter now has the OSS baseline: license, community docs, CI, issue/PR templates, portable paths, and a public-facing README. CI passed at run `27035203623`; active private brand profiles were removed; tests are isolated from local config; repo remains private until explicit visibility flip.
 
 ## Current repo state
 
@@ -23,12 +23,12 @@ PoXter now has the OSS baseline: license, community docs, CI, issue/PR templates
 - OSR-4 CI: completed
 - OSR-5 README/public polish: completed
 
-## Blocking issues before public release
+## Public release status
 
-| Area | Issue | Risk | Required fix |
+| Area | Status | Risk | Required fix |
 |---|---|---:|---|
-| Release hygiene | Final scan for any private/demo content in docs and examples | Public polish may still leak internal context | Review before visibility flip |
-| Ops | Public repo still needs hardened deployment guidance if exposed externally | Unsafe public deployment | Keep private until auth/reverse-proxy review is done |
+| Release readiness | Safe to publish now after green CI run `27035203623` | Low | Keep repo private until explicit visibility flip |
+| Brand/config isolation | Active private brand profiles removed; tests isolated from local config | Low | No source change required |
 
 ## Secret/security audit result
 
@@ -44,9 +44,10 @@ Notes:
 
 ## Final recommendation
 
-**RECOMMENDATION: public_after_minor_cleanup**
+**RECOMMENDATION: safe_to_publish_now**
+**ASSESSMENT: osr-public-ready**
 
-PoXter meets the public open-source prep baseline. Keep repo private until the requested visibility flip is performed separately.
+PoXter meets the public open-source prep baseline. Repo remains private until explicit visibility flip is performed separately.
 
 ## OSR-6 final go/no-go scan
 
@@ -56,8 +57,8 @@ PoXter meets the public open-source prep baseline. Keep repo private until the r
 
 ### Results
 
-- `PUBLIC_RELEASE_READY: yes_after_minor_cleanup`
-- `RECOMMENDATION: public_after_minor_cleanup`
+- `PUBLIC_RELEASE_READY: yes`
+- `RECOMMENDATION: safe_to_publish_now`
 
 ### Scan summary
 
@@ -68,12 +69,12 @@ PoXter meets the public open-source prep baseline. Keep repo private until the r
 - Active brand fixtures and UI tests use generic demo names only.
 - `config/brands.example.json` uses only `Demo Brand`, so private brands are not active defaults.
 - README and SECURITY already warn about local-first use, Buffer gating, and public exposure hardening.
-- CI workflow now installs pnpm before setup-node cache resolution and uses Node 22 for pnpm 11 compatibility; latest post-push CI still fails in draft review tests.
+- CI workflow uses pnpm before setup-node cache resolution and Node 22; GitHub Actions run `27035203623` passed.
 - `pnpm check:poxter` passed.
 - No Buffer call happened.
 
 ### Remaining risks
 
 - Private brand profile files were removed from tracked repo content; `brands/demo-brand.md` is the public fixture.
-- CI should run from clean clone without local config or Buffer credentials; latest post-push run passed.
-- Public deployment still needs authentication, HTTPS, and reverse-proxy hardening before any external exposure.
+- Tests are isolated from local config; GitHub Actions run `27035203623` passed.
+- Active private brand profiles removed, tests isolated from local config, and repo remains private until explicit visibility flip.

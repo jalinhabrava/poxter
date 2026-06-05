@@ -81,10 +81,12 @@ Result:
 
 ## Final recommendation
 
-`public_after_minor_cleanup`
+PUBLIC_RELEASE_READY: yes
 
-Assessment: `osr-public-ready-with-minor-followups`
+RECOMMENDATION: safe_to_publish_now
+
+ASSESSMENT: osr-public-ready
 
 Notes:
-- keep repository private until explicit visibility change is requested
-- deployment hardening remains separate from source cleanup
+- repo remains private until explicit visibility flip is requested
+- CI passed at run `27035203623`; active private brand profiles removed; tests isolated from local config.

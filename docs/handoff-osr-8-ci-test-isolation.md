@@ -48,11 +48,21 @@ Local results:
 
 - repository visibility: private
 - Buffer calls: false
+- CI passed at run `27035203623`
+- active private brand profiles removed
+- tests isolated from local config
+- repo remains private until explicit visibility flip
 - live scheduling: not run
 - temp DB cleaned: yes
 
 ## Pending
 
-GitHub Actions confirmation still pending at handoff time.
+GitHub Actions run `27035203623` passed.
 
-Assessment: `osr-ci-test-isolation-ready-with-ci-pending`
+## Final recommendation
+
+PUBLIC_RELEASE_READY: yes
+
+RECOMMENDATION: safe_to_publish_now
+
+ASSESSMENT: osr-public-ready
