@@ -5,10 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "dev:poxter": "bash scripts/dev/social-controller-dev.sh",
-    "check:poxter": "bash scripts/dev/social-controller-check.sh",
-    "dev:social": "bash scripts/dev/social-controller-dev.sh",
-    "check:social": "bash scripts/dev/social-controller-check.sh",
+    "dev:poxter": "bash scripts/dev/poxter-dev.sh",
+    "check:poxter": "bash scripts/dev/poxter-check.sh",
     "prisma:generate": "prisma generate",
     "prisma:seed": "node prisma/seed.mjs",
     "test": "DATABASE_URL=file:/home/david/projects/poxter/test.db pnpm prisma db push --skip-generate && DATABASE_URL=file:/home/david/projects/poxter/test.db vitest run",

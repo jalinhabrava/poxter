@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ENV_FILE="$HOME/.config/poxter/env"
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+else
+  echo "PoXter env file missing: $ENV_FILE" >&2
+fi
+export DATABASE_URL="${DATABASE_URL:-file:/home/david/projects/poxter/dev.db}"
+export POXTER_HOST="${POXTER_HOST:-0.0.0.0}"
+export POXTER_PORT="${POXTER_PORT:-3000}"
