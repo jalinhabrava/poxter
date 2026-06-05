@@ -9,6 +9,7 @@
     "check:poxter": "bash scripts/dev/poxter-check.sh",
     "prisma:generate": "prisma generate",
     "prisma:seed": "node prisma/seed.mjs",
+    "test:ci": "POXTER_BRANDS_FILE=$PWD/tests/fixtures/brands.test.json DATABASE_URL=file:$PWD/test.db pnpm prisma db push --skip-generate && POXTER_BRANDS_FILE=$PWD/tests/fixtures/brands.test.json DATABASE_URL=file:$PWD/test.db vitest run",
     "test": "DATABASE_URL=file:$PWD/test.db pnpm prisma db push --skip-generate && DATABASE_URL=file:$PWD/test.db vitest run",
     "build": "next build",
     "prisma": "node scripts/dev/prisma-wrapper.mjs"

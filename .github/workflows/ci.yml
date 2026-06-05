@@ -16,6 +16,7 @@ jobs:
     env:
       DATABASE_URL: file:${{ github.workspace }}/ci.db
       NODE_ENV: test
+      POXTER_BRANDS_FILE: ${{ github.workspace }}/tests/fixtures/brands.test.json
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,7 +49,7 @@ jobs:
         run: pnpm prisma:seed
 
       - name: Run tests
-        run: pnpm test
+        run: pnpm test:ci
 
       - name: Build
         run: pnpm build

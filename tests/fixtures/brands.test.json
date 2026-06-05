@@ -1,0 +1,16 @@
+{
+  "brands": [
+    {
+      "slug": "textifai",
+      "name": "TextifAI",
+      "timezone": "Europe/Madrid",
+      "platforms": ["x"]
+    },
+    {
+      "slug": "bitcoinpendium",
+      "name": "David Bitcoinpendium",
+      "timezone": "Europe/Madrid",
+      "platforms": ["x"]
+    }
+  ]
+}

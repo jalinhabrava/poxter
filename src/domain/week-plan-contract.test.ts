@@ -24,6 +24,7 @@ describe('brand registry', () => {
     const home = join(tmpdir(), `poxter-home-${Date.now()}`);
     mkdirSync(home, { recursive: true });
     vi.stubEnv('HOME', home);
+    vi.stubEnv('POXTER_BRANDS_FILE', '');
     const mod = await import('./brand-config');
     expect(mod.getBrandRegistry().map((brand) => brand.slug)).toEqual(['demo-brand']);
     rmSync(home, { recursive: true, force: true });
@@ -50,6 +51,7 @@ describe('week plan contract', () => {
     const home = join(tmpdir(), `poxter-home-${Date.now()}`);
     mkdirSync(home, { recursive: true });
     vi.stubEnv('HOME', home);
+    vi.stubEnv('POXTER_BRANDS_FILE', '');
     const { validateWeekPlanContract } = await import('./week-plan-contract');
     expect(validateWeekPlanContract(demoPlan)).toEqual({ ok: true, errors: [] });
     rmSync(home, { recursive: true, force: true });
@@ -59,6 +61,7 @@ describe('week plan contract', () => {
     const home = join(tmpdir(), `poxter-home-${Date.now()}`);
     mkdirSync(home, { recursive: true });
     vi.stubEnv('HOME', home);
+    vi.stubEnv('POXTER_BRANDS_FILE', '');
     const { validateWeekPlanContract } = await import('./week-plan-contract');
     expect(validateWeekPlanContract({ ...demoPlan, brand: { slug: 'demo-brand', name: 'Wrong' } }).ok).toBe(false);
     rmSync(home, { recursive: true, force: true });
@@ -68,6 +71,7 @@ describe('week plan contract', () => {
     const home = join(tmpdir(), `poxter-home-${Date.now()}`);
     mkdirSync(home, { recursive: true });
     vi.stubEnv('HOME', home);
+    vi.stubEnv('POXTER_BRANDS_FILE', '');
     const { validateWeekPlanContract } = await import('./week-plan-contract');
     expect(validateWeekPlanContract({ ...demoPlan, brand: { slug: 'nope', name: 'Nope' } }).ok).toBe(false);
     rmSync(home, { recursive: true, force: true });
@@ -92,6 +96,7 @@ describe('week plan contract', () => {
     const home = join(tmpdir(), `poxter-home-${Date.now()}`);
     mkdirSync(home, { recursive: true });
     vi.stubEnv('HOME', home);
+    vi.stubEnv('POXTER_BRANDS_FILE', '');
     const { validateWeekPlanContract } = await import('./week-plan-contract');
     const duplicate = { ...demoPlan, drafts: [...demoPlan.drafts, { ...demoPlan.drafts[0] }] };
     expect(validateWeekPlanContract(duplicate).ok).toBe(false);
@@ -102,6 +107,7 @@ describe('week plan contract', () => {
     const home = join(tmpdir(), `poxter-home-${Date.now()}`);
     mkdirSync(home, { recursive: true });
     vi.stubEnv('HOME', home);
+    vi.stubEnv('POXTER_BRANDS_FILE', '');
     const { validateWeekPlanContract } = await import('./week-plan-contract');
     expect(validateWeekPlanContract({ ...demoPlan, drafts: [{ ...demoPlan.drafts[0], body: '', thread_posts: [] }] }).ok).toBe(false);
     rmSync(home, { recursive: true, force: true });
@@ -111,6 +117,7 @@ describe('week plan contract', () => {
     const home = join(tmpdir(), `poxter-home-${Date.now()}`);
     mkdirSync(home, { recursive: true });
     vi.stubEnv('HOME', home);
+    vi.stubEnv('POXTER_BRANDS_FILE', '');
     const { validateWeekPlanContract } = await import('./week-plan-contract');
     expect(validateWeekPlanContract({ ...demoPlan, drafts: [{ ...demoPlan.drafts[0], status: 'posted' }] }).ok).toBe(false);
     rmSync(home, { recursive: true, force: true });
