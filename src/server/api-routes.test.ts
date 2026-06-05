@@ -10,6 +10,7 @@ import { POST as rejectDraft } from '../../app/api/drafts/[id]/reject/route';
 import { POST as needsReviewDraft } from '../../app/api/drafts/[id]/needs-review/route';
 import { POST as backToDraft } from '../../app/api/drafts/[id]/back-to-draft/route';
 import { POST as dryRunDraft } from '../../app/api/drafts/[id]/dry-run/route';
+import { POST as deleteEverywhereDraft } from '../../app/api/drafts/[id]/delete-everywhere/route';
 
 const textifaiPlan = JSON.parse(readFileSync('schedule.json.example', 'utf8'));
 
@@ -81,5 +82,17 @@ describe('draft review routes', () => {
     expect(payload.dryRun).toBe(true);
     expect(payload.bufferCalled).toBe(false);
     expect(payload.publishText).toBe('Body payload');
+  });
+
+  it('delete everywhere removes draft from drafts API', async () => {
+    await prisma.draft.deleteMany();
+    await importPOST(new Request('http://localhost', { method: 'POST', body: JSON.stringify({ json: textifaiPlan }) }));
+    const draft = await prisma.draft.findFirstOrThrow({ where: { externalId: 'draft-1' } });
+    const response = await deleteEverywhereDraft(new Request('http://localhost', { method: 'POST' }), { params: Promise.resolve({ id: draft.id }) });
+    const payload = await response.json();
+    expect(payload.ok).toBe(true);
+    const draftsResponse = await draftsGET(new Request('http://localhost/api/drafts?brandSlug=textifai'));
+    const draftsPayload = await draftsResponse.json();
+    expect(draftsPayload.drafts.map((item: { id: string }) => item.id)).not.toContain(draft.id);
   });
 });

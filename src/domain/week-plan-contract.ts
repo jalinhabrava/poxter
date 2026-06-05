@@ -26,7 +26,6 @@ export function validateWeekPlanContract(input: unknown) {
     if (draft?.external_id) externalIds.add(draft.external_id);
     if (!draft?.platform) errors.push('draft.platform');
     if (!draft?.format) errors.push('draft.format');
-    if (!draft?.title) errors.push('draft.title');
     const hasBody = typeof draft?.body === 'string' && draft.body.trim().length > 0;
     const threadPosts = Array.isArray(draft?.thread_posts) ? draft.thread_posts.filter((post: unknown) => typeof post === 'string' && String(post).trim().length > 0) : [];
     if (!hasBody && threadPosts.length === 0) errors.push('draft.body_or_thread_posts');

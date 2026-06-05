@@ -6,6 +6,10 @@ function asScheduledDate(value: unknown) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+function fallbackTitleFromDate(date: Date) {
+  return `Post ${date.toISOString().slice(0, 10)} ${date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+}
+
 export async function persistScheduledPost(input: {
   brandSlug?: unknown;
   draftId?: unknown;
@@ -17,7 +21,7 @@ export async function persistScheduledPost(input: {
   payload?: unknown;
 }) {
   const brandSlug = typeof input.brandSlug === 'string' ? input.brandSlug : '';
-  const title = typeof input.title === 'string' ? input.title : '';
+  const rawTitle = typeof input.title === 'string' ? input.title : '';
   const body = typeof input.body === 'string' ? input.body : '';
   const externalStatus = typeof input.externalStatus === 'string' ? input.externalStatus : '';
   const scheduledAt = asScheduledDate(input.scheduledAt);
@@ -25,11 +29,11 @@ export async function persistScheduledPost(input: {
   const externalId = typeof input.externalId === 'string' && input.externalId.length > 0 ? input.externalId : null;
 
   if (!brandSlug) return { ok: false as const, status: 400, errors: ['brand.slug'] };
-  if (!title) return { ok: false as const, status: 400, errors: ['draft.title'] };
   if (!body) return { ok: false as const, status: 400, errors: ['body.empty'] };
   if (!scheduledAt) return { ok: false as const, status: 400, errors: ['scheduledAt'] };
   if (!externalStatus) return { ok: false as const, status: 400, errors: ['externalStatus'] };
   if (externalStatus !== 'scheduled') return { ok: false as const, status: 400, errors: ['externalStatus.not_scheduled'] };
+  const title = rawTitle.trim() || fallbackTitleFromDate(scheduledAt);
 
   const persisted = await prisma.scheduledPost.create({
     data: {

@@ -43,7 +43,7 @@ beforeEach(() => {
     if (url === '/api/drafts/draft-2/approve') return jsonResponse({ ok: true, draft: drafts[1] });
     if (url === '/api/drafts/draft-2/reject') return jsonResponse({ ok: true, draft: { ...drafts[1], status: 'rejected' } });
     if (url === '/api/drafts/draft-2/dry-run') {
-      return jsonResponse({ ok: true, dryRun: true, bufferCalled: false, publishText: drafts[1].body, characterCount: drafts[1].body.length, limit: 140, draft: drafts[1] });
+      return jsonResponse({ ok: true, dryRun: true, bufferCalled: false, publishText: drafts[1].body, characterCount: drafts[1].body.length, limit: 280, draft: drafts[1] });
     }
     if (url === '/api/import/week-plan/validate') return jsonResponse({ ok: true });
     if (url === '/api/import/week-plan') return jsonResponse({ ok: true, imported: 2 });
@@ -59,7 +59,7 @@ describe('phase 4 dashboard UI', () => {
   it('renders three-zone review dashboard with all brands', async () => {
     render(<HomePage />);
     expect(await screen.findByText('Draft workspace')).toBeTruthy();
-    expect(screen.getByText('Brands & Import')).toBeTruthy();
+    expect(screen.getByText('Brand switcher')).toBeTruthy();
     expect(screen.getByText('Review & Publish Flow')).toBeTruthy();
     expect(screen.getAllByText('TextifAI').length).toBeGreaterThan(0);
     expect(screen.getAllByText('OnT').length).toBeGreaterThan(0);
@@ -71,16 +71,16 @@ describe('phase 4 dashboard UI', () => {
     await screen.findByText('Bitcoin Monday');
     fireEvent.click(screen.getByText('Stack Stats'));
     await waitFor(() => expect((screen.getByLabelText('Body') as HTMLTextAreaElement).value).toBe('Small amounts. Consistent habit.'));
-    expect(screen.getByText('32 / 140')).toBeTruthy();
+    expect(screen.getByText('32 / 280')).toBeTruthy();
   });
 
-  it('shows over-limit warning when body exceeds 140 chars', async () => {
+  it('shows over-limit warning when body exceeds 280 chars', async () => {
     render(<HomePage />);
     const body = await screen.findByLabelText('Body');
     await waitFor(() => expect((body as HTMLTextAreaElement).value).toBe('Start the week with a reminder.'));
-    fireEvent.change(body, { target: { value: 'x'.repeat(141) } });
-    await waitFor(() => expect((body as HTMLTextAreaElement).value).toBe('x'.repeat(141)));
-    expect(screen.getAllByText('141 / 140').length).toBeGreaterThan(0);
+    fireEvent.change(body, { target: { value: 'x'.repeat(281) } });
+    await waitFor(() => expect((body as HTMLTextAreaElement).value).toBe('x'.repeat(281)));
+    expect(screen.getAllByText('281 / 280').length).toBeGreaterThan(0);
   });
 
   it('keeps dry-run disabled until all drafts reviewed', async () => {
@@ -96,7 +96,7 @@ describe('phase 4 dashboard UI', () => {
       if (url.startsWith('/api/drafts?brandSlug=')) return jsonResponse({ ok: true, drafts: allReviewed });
       if (url.endsWith('/dry-run')) {
         const draft = allReviewed.find((item) => url.includes(item.id))!;
-        return jsonResponse({ ok: true, dryRun: true, bufferCalled: false, publishText: draft.body, characterCount: draft.body.length, limit: 140, draft });
+        return jsonResponse({ ok: true, dryRun: true, bufferCalled: false, publishText: draft.body, characterCount: draft.body.length, limit: 280, draft });
       }
       return jsonResponse({ ok: true, draft: allReviewed[0] });
     });
@@ -113,9 +113,9 @@ describe('phase 4 dashboard UI', () => {
     const allReviewed = drafts.map((draft) => ({ ...draft, status: 'approved' }));
     vi.mocked(fetch).mockImplementation((input: RequestInfo | URL) => {
       const url = input.toString();
-      if (url === '/api/settings/buffer') return jsonResponse({ ok: true, configured: true, mappings: [{ brandSlug: 'textifai', channelId: 'ch-1', channelName: 'TextifAI Queue' }], channels: [{ id: 'ch-1', name: 'TextifAI Queue' }] });
+      if (url === '/api/settings/buffer') return jsonResponse({ ok: true, configured: true, connected: true, mappings: [{ brandSlug: 'textifai', channelId: 'ch-1', channelName: 'TextifAI Queue' }], channels: [{ id: 'ch-1', name: 'TextifAI Queue' }] });
       if (url.startsWith('/api/drafts?brandSlug=')) return jsonResponse({ ok: true, drafts: allReviewed });
-      if (url.endsWith('/dry-run')) return jsonResponse({ ok: true, dryRun: true, bufferCalled: false, publishText: 'Body only', characterCount: 9, limit: 140, draft: allReviewed[0] });
+      if (url.endsWith('/dry-run')) return jsonResponse({ ok: true, dryRun: true, bufferCalled: false, publishText: 'Body only', characterCount: 9, limit: 280, draft: allReviewed[0] });
       if (url === '/api/scheduled-posts') return jsonResponse({ ok: true, scheduled: 2 });
       if (url === '/api/calendar') return jsonResponse({ ok: true, scheduledPosts: [] });
       return jsonResponse({ ok: true, draft: allReviewed[0] });

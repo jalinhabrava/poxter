@@ -1,6 +1,6 @@
 export function buildPublishText(input: { title?: string | null; body?: string | null; platform?: string | null }) {
   const text = (input.body ?? '').trim();
-  const limit = input.platform === 'x' ? 140 : null;
+  const limit = input.platform === 'x' ? 280 : null;
   const characterCount = text.length;
   const errors: string[] = [];
   if (!text) errors.push('body.empty');

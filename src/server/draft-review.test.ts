@@ -27,6 +27,14 @@ describe('draft review workflow', () => {
     expect((await prisma.draft.findUniqueOrThrow({ where: { id: draft.id } })).body).toBe('Updated body');
   });
 
+  it('update imported schedule date/time persists', async () => {
+    const draft = await prisma.draft.findFirstOrThrow({ where: { externalId: 'draft-1' } });
+    const result = await updateDraft(draft.id, { scheduleDate: '2026-06-15', scheduleTimeLocal: '14:30', timezone: 'Europe/Madrid' });
+    expect(result.ok).toBe(true);
+    expect(result.draft.scheduleMeta.date).toBe('2026-06-15');
+    expect(result.draft.scheduleMeta.time_local).toBe('14:30');
+  });
+
   it('saving one draft does not update another', async () => {
     const first = await prisma.draft.findFirstOrThrow({ where: { externalId: 'draft-1' } });
     const second = await prisma.draft.findFirstOrThrow({ where: { externalId: 'draft-2' } });
@@ -56,13 +64,13 @@ describe('draft review workflow', () => {
     expect(result.publishText).not.toContain('Secret title');
   });
 
-  it('140 chars valid', () => {
-    const result = buildPublishText({ body: 'x'.repeat(140), platform: 'x' });
+  it('280 chars valid', () => {
+    const result = buildPublishText({ body: 'x'.repeat(280), platform: 'x' });
     expect(result.ok).toBe(true);
   });
 
-  it('141 chars invalid', () => {
-    const result = buildPublishText({ body: 'x'.repeat(141), platform: 'x' });
+  it('281 chars invalid', () => {
+    const result = buildPublishText({ body: 'x'.repeat(281), platform: 'x' });
     expect(result.ok).toBe(false);
     expect(result.errors).toContain('body.too_long');
   });

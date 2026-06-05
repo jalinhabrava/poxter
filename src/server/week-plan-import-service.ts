@@ -1,9 +1,16 @@
 import { PrismaClient } from '@prisma/client';
 import { validateWeekPlanContract } from '../domain/week-plan-contract';
+import { brands } from '../domain/brand-config';
 
 type ImportMode = 'upsert_by_external_id' | 'replace_week';
 
 const prisma = new PrismaClient();
+
+export async function ensureBrands() {
+  for (const brand of brands) {
+    await prisma.brand.upsert({ where: { slug: brand.slug }, update: { name: brand.name }, create: brand });
+  }
+}
 
 function asArray(value: unknown) {
   return Array.isArray(value) ? value : [];
@@ -44,7 +51,14 @@ function resolveDraftSchedule(draft: any, slotsById: Map<string, any>, fallbackW
   };
 }
 
+function fallbackTitleFromSchedule(input: { date?: string | null; timeLocal?: string | null; time_local?: string | null; scheduledAt?: string | null }) {
+  const date = input.date ?? input.scheduledAt?.slice(0, 10) ?? 'unscheduled';
+  const time = input.timeLocal ?? input.time_local ?? (input.scheduledAt ? new Date(input.scheduledAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : null);
+  return `Post ${date}${time ? ` ${time}` : ''}`;
+}
+
 export async function importWeekPlan(input: unknown, mode: ImportMode = 'upsert_by_external_id') {
+  await ensureBrands();
   const validation = validateWeekPlanContract(input);
   if (!validation.ok) return { ok: false, errors: validation.errors };
 
@@ -94,7 +108,7 @@ export async function importWeekPlan(input: unknown, mode: ImportMode = 'upsert_
       slotId: draft.slot_id,
       platform: draft.platform,
       format: draft.format,
-      title: draft.title,
+      title: typeof draft.title === 'string' && draft.title.trim().length > 0 ? draft.title : fallbackTitleFromSchedule(scheduleMeta),
       body: draft.body ?? null,
       threadPosts: draft.thread_posts ? JSON.stringify(draft.thread_posts) : null,
       status: draft.status,

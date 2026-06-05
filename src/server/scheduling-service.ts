@@ -3,6 +3,7 @@ import { buildPublishText } from './publish-text';
 import { createPost, deletePost } from '../integrations/buffer/client';
 import { toBufferErrorResponse } from './buffer-api-response';
 import { getBufferMapping } from './buffer-settings-service';
+import { fallbackTitleFromSchedule } from './drafts-service';
 
 function parseScheduleMeta(draft: { scheduleMeta: string | null }) {
   if (!draft.scheduleMeta) return null;
@@ -38,7 +39,7 @@ export async function scheduleApprovedDrafts(brandSlug: string) {
       const post = await createPost({ channelId: mapping.channelId, text: publishText.text, scheduledAt: draft.scheduledAt.toISOString() });
       if (!post?.id) return { ok: false as const, status: 502, errors: ['buffer.post_id_missing'] };
       await prisma.$transaction([
-        prisma.scheduledPost.create({ data: { brandSlug, draftId: draft.id, bufferPostId: post.id, title: draft.title, body: publishText.text, scheduledAt: draft.scheduledAt, externalStatus: 'scheduled', payload: JSON.stringify({ bufferPostId: post.id, scheduledAt: draft.scheduledAt.toISOString(), channelId: mapping.channelId }) } }),
+        prisma.scheduledPost.create({ data: { brandSlug, draftId: draft.id, bufferPostId: post.id, title: draft.title.trim() || fallbackTitleFromSchedule(parseScheduleMeta(draft)), body: publishText.text, scheduledAt: draft.scheduledAt, externalStatus: 'scheduled', payload: JSON.stringify({ bufferPostId: post.id, scheduledAt: draft.scheduledAt.toISOString(), channelId: mapping.channelId }) } }),
         prisma.draft.update({ where: { id: draft.id }, data: { status: 'scheduled' } }),
         prisma.publishActionLog.create({ data: { brandSlug, draftId: draft.id, action: 'schedule', status: 'success', source: 'buffer', payload: JSON.stringify({ bufferPostId: post.id }) } })
       ]);
@@ -63,9 +64,26 @@ export async function deleteDraftEverywhere(draftId: string) {
     ]);
     return { ok: true as const, deleted: 'local' };
   }
+
+  if (!process.env.BUFFER_API_KEY?.trim()) {
+    await prisma.$transaction([
+      prisma.scheduledPost.delete({ where: { id: scheduledPost.id } }),
+      prisma.draft.delete({ where: { id: draftId } }),
+      prisma.publishActionLog.create({ data: { brandSlug: draft.brand.slug, draftId, action: 'delete_everywhere', status: 'success', source: 'local', payload: JSON.stringify({ skippedBufferReason: 'buffer.api_key_missing', bufferPostId: scheduledPost.bufferPostId }) } })
+    ]);
+    return { ok: true as const, deleted: 'local+stale-buffer' };
+  }
+
   try {
     const deleted = await deletePost(scheduledPost.bufferPostId);
-    if (!deleted) return { ok: false as const, status: 502, errors: ['buffer.delete_failed'] };
+    if (!deleted) {
+      await prisma.$transaction([
+        prisma.scheduledPost.delete({ where: { id: scheduledPost.id } }),
+        prisma.draft.delete({ where: { id: draftId } }),
+        prisma.publishActionLog.create({ data: { brandSlug: draft.brand.slug, draftId, action: 'delete_everywhere', status: 'success', source: 'buffer', payload: JSON.stringify({ bufferPostId: scheduledPost.bufferPostId, treatedAsMissing: true }) } })
+      ]);
+      return { ok: true as const, deleted: 'buffer-missing+local' };
+    }
     await prisma.$transaction([
       prisma.scheduledPost.delete({ where: { id: scheduledPost.id } }),
       prisma.draft.delete({ where: { id: draftId } }),
@@ -74,6 +92,14 @@ export async function deleteDraftEverywhere(draftId: string) {
     return { ok: true as const, deleted: 'buffer+local' };
   } catch (error) {
     const payload = toBufferErrorResponse(error);
+    if (payload.errors.includes('buffer.api_key_missing')) {
+      await prisma.$transaction([
+        prisma.scheduledPost.delete({ where: { id: scheduledPost.id } }),
+        prisma.draft.delete({ where: { id: draftId } }),
+        prisma.publishActionLog.create({ data: { brandSlug: draft.brand.slug, draftId, action: 'delete_everywhere', status: 'success', source: 'local', payload: JSON.stringify({ skippedBufferReason: 'buffer.api_key_missing', bufferPostId: scheduledPost.bufferPostId }) } })
+      ]);
+      return { ok: true as const, deleted: 'local+stale-buffer' };
+    }
     await prisma.publishActionLog.create({ data: { brandSlug: draft.brand.slug, draftId, action: 'delete_everywhere', status: 'error', source: 'buffer', error: payload.errors.join(', '), payload: JSON.stringify(payload) } });
     return payload;
   }

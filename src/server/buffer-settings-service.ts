@@ -1,5 +1,22 @@
 import { prisma } from './week-plan-import-service';
-import { isBufferConfigured, listChannels } from '../integrations/buffer/client';
+import { isBufferConfigured, listChannels, verifyConnection } from '../integrations/buffer/client';
+import { brands } from '../domain/brand-config';
+
+const brandAliases: Record<string, string[]> = {
+  textifai: ['textifai'],
+  ont: ['ont', 'oujanotsue', 'ouja no tsue'],
+  bitcoinpendium: ['bitcoinpendium', 'davidbitcoinpendium', 'david bitcoinpendium']
+};
+
+function normalize(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function matchesBrand(channel: { id: string; name?: string | null }, brandSlug: string, brandName: string) {
+  const haystack = normalize(`${channel.name ?? ''} ${channel.id}`);
+  const tokens = [brandSlug, brandName, ...(brandAliases[brandSlug] ?? [])].map(normalize);
+  return tokens.some((token) => token && haystack.includes(token));
+}
 
 function parsePayload(payload: string | null) {
   return payload ? JSON.parse(payload) : null;
@@ -27,7 +44,26 @@ export async function refreshBufferChannels() {
       create: { channelId: channel.id, channelName: channel.name ?? null, payload: JSON.stringify(channel) }
     });
   }
+  for (const brand of brands) {
+    const existing = await prisma.bufferChannelMapping.findUnique({ where: { brandSlug: brand.slug } });
+    if (existing) continue;
+    const match = channels.find((channel) => matchesBrand(channel, brand.slug, brand.name));
+    if (!match) continue;
+    await prisma.bufferChannelMapping.create({
+      data: {
+        brandSlug: brand.slug,
+        channelId: match.id,
+        channelName: match.name ?? null,
+        payload: JSON.stringify(match)
+      }
+    });
+  }
   return getBufferSettings();
+}
+
+export async function verifyBufferConnection() {
+  await verifyConnection();
+  return { ok: true as const, connected: true as const };
 }
 
 export async function saveBufferMapping(input: { brandSlug?: unknown; channelId?: unknown }) {

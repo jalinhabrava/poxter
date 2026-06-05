@@ -52,7 +52,11 @@ describe('phase 5 actions', () => {
   });
 
   it('refresh channels calls Buffer once and persists cache', async () => {
-    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(new Response(JSON.stringify({ data: { channels: [{ id: 'ch-1', name: 'Queue 1' }] } }), { status: 200, headers: { 'content-type': 'application/json' } }))));
+    vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body ?? '{}'));
+      if (String(body.query).includes('account')) return Promise.resolve(new Response(JSON.stringify({ data: { account: { organizations: [{ id: 'org-1', name: 'Org 1' }] } } }), { status: 200, headers: { 'content-type': 'application/json' } }));
+      return Promise.resolve(new Response(JSON.stringify({ data: { channels: [{ id: 'ch-1', name: 'Queue 1', service: 'x' }] } }), { status: 200, headers: { 'content-type': 'application/json' } }));
+    }));
     const result = await refreshBufferChannels();
     expect(result.channels).toHaveLength(1);
     expect(readBufferRequestLog().filter((item) => item.action === 'listChannels')).toHaveLength(1);
@@ -86,12 +90,12 @@ describe('phase 5 actions', () => {
     expect((await prisma.scheduledPost.findFirstOrThrow()).bufferPostId).toBe('buf-1');
   });
 
-  it('body over 140 blocks before Buffer', async () => {
+  it('body over 280 blocks before Buffer', async () => {
     await prisma.bufferChannelCache.create({ data: { channelId: 'ch-1', channelName: 'Queue 1', payload: '{}' } });
     await saveBufferMapping({ brandSlug: 'textifai', channelId: 'ch-1' });
     await prisma.draft.updateMany({ where: { brand: { slug: 'textifai' } }, data: { status: 'rejected' } });
     const target = await prisma.draft.findFirstOrThrow({ where: { brand: { slug: 'textifai' } } });
-    await prisma.draft.update({ where: { id: target.id }, data: { status: 'approved', body: 'x'.repeat(141) } });
+    await prisma.draft.update({ where: { id: target.id }, data: { status: 'approved', body: 'x'.repeat(281) } });
     const result = await scheduleApprovedDrafts('textifai');
     expect(result.ok).toBe(false);
     expect(readBufferRequestLog()).toHaveLength(0);
@@ -113,5 +117,15 @@ describe('phase 5 actions', () => {
     expect(result.ok).toBe(true);
     expect(readBufferRequestLog().filter((item) => item.action === 'deletePost')).toHaveLength(1);
     expect(await prisma.scheduledPost.count()).toBe(0);
+  });
+
+  it('delete scheduled draft without Buffer key still removes stale local state', async () => {
+    process.env.BUFFER_API_KEY = '';
+    const target = await prisma.draft.findFirstOrThrow({ where: { brand: { slug: 'textifai' } } });
+    await prisma.scheduledPost.create({ data: { brandSlug: 'textifai', draftId: target.id, bufferPostId: 'buf-stale-1', title: target.title, body: target.body ?? 'body', scheduledAt: target.scheduledAt!, externalStatus: 'scheduled', payload: '{}' } });
+    const result = await deleteDraftEverywhere(target.id);
+    expect(result.ok).toBe(true);
+    expect(await prisma.scheduledPost.count()).toBe(0);
+    await expect(prisma.draft.findUnique({ where: { id: target.id } })).resolves.toBeNull();
   });
 });
