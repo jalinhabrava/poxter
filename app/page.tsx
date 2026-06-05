@@ -4,7 +4,6 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent } from 'react';
-import { brands } from '../src/domain/brand-config';
 
 type DraftStatus = 'draft' | 'needs_review' | 'approved' | 'rejected';
 
@@ -35,7 +34,6 @@ const statuses: Array<{ value: 'all' | DraftStatus; label: string }> = [
   { value: 'rejected', label: 'Rejected' },
   { value: 'needs_review', label: 'Needs review' }
 ];
-const brandMeta = { textifai: { initials: 'T', short: 'TEXTIFAI' }, ont: { initials: 'O', short: 'ONT' }, bitcoinpendium: { initials: 'DB', short: 'BITCOINPENDIUM' } } as const;
 const validationHints: Record<string, string> = {
   invalid_json: 'JSON inválido: revisa comas, comillas y llaves.',
   schema_version: 'Falta schema_version o no coincide con social-controller.week-plan.v1.',
@@ -101,7 +99,8 @@ function messageTone(message: string) {
 }
 
 export default function HomePage() {
-  const [selectedBrand, setSelectedBrand] = useState<(typeof brands)[number]['slug']>(brands[0].slug);
+  const [brands, setBrands] = useState<Array<{ slug: string; name: string }>>([]);
+  const [selectedBrand, setSelectedBrand] = useState('');
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
   const [editorTitle, setEditorTitle] = useState('');
@@ -128,7 +127,7 @@ export default function HomePage() {
   const [bufferSettings, setBufferSettings] = useState<BufferSettings | null>(null);
   const [bufferSessionConnected, setBufferSessionConnected] = useState(false);
 
-  const selectedBrandConfig = brands.find((brand) => brand.slug === selectedBrand) ?? brands[0];
+  const selectedBrandConfig = brands.find((brand) => brand.slug === selectedBrand) ?? brands[0] ?? null;
   const visibleScheduledPosts = useMemo(() => scheduledPosts.filter((post) => post.brandSlug === selectedBrand), [scheduledPosts, selectedBrand]);
   const scheduledDraftIds = useMemo(() => new Set(visibleScheduledPosts.map((post) => post.draftId).filter(Boolean)), [visibleScheduledPosts]);
   const workspaceDrafts = useMemo(() => drafts.filter((draft) => !scheduledDraftIds.has(draft.id)), [drafts, scheduledDraftIds]);
@@ -183,15 +182,17 @@ export default function HomePage() {
     { label: 'Schedule', detail: canSchedule ? 'Ready to schedule' : !bufferConnected ? 'Connect Buffer mapping' : !approvedDraftsHaveSchedule ? 'Add date/time to approved drafts' : 'Schedule approved posts', done: false }
   ];
 
-  useEffect(() => { void loadDrafts(selectedBrand, { resetSelection: true }); }, [selectedBrand]);
+  useEffect(() => { if (selectedBrand) void loadDrafts(selectedBrand, { resetSelection: true }); }, [selectedBrand]);
+  useEffect(() => { void loadBrands(); }, []);
   useEffect(() => { void loadCalendar(); }, []);
-  useEffect(() => { void loadBufferSettings(); }, [selectedBrand]);
+  useEffect(() => { if (selectedBrand) void loadBufferSettings(); }, [selectedBrand]);
   useEffect(() => { setBufferSessionConnected(Boolean(bufferSettings?.connected)); }, [bufferSettings?.connected]);
   useEffect(() => {
     const savedBrand = window.localStorage.getItem('poxter.selected-brand');
-    if (savedBrand && brands.some((brand) => brand.slug === savedBrand)) setSelectedBrand(savedBrand as (typeof brands)[number]['slug']);
-  }, []);
-  useEffect(() => { window.localStorage.setItem('poxter.selected-brand', selectedBrand); }, [selectedBrand]);
+    if (savedBrand && brands.some((brand) => brand.slug === savedBrand)) setSelectedBrand(savedBrand);
+    else if (!selectedBrand && brands[0]) setSelectedBrand(brands[0].slug);
+  }, [brands, selectedBrand]);
+  useEffect(() => { if (selectedBrand) window.localStorage.setItem('poxter.selected-brand', selectedBrand); }, [selectedBrand]);
   useEffect(() => {
     if (!selectedDraft) { setEditorTitle(''); setEditorBody(''); return; }
     setSelectedDraftId(selectedDraft.id);
@@ -223,6 +224,16 @@ export default function HomePage() {
     if (!response.ok) throw new Error(formatApiError(payload));
     return payload as T;
   }
+  async function loadBrands() {
+    try {
+      const response = await fetch('/api/brands', { cache: 'no-store' });
+      const payload = await response.json() as { ok: boolean; brands: Array<{ slug: string; name: string }> };
+      setBrands(Array.isArray(payload.brands) ? payload.brands : []);
+    } catch {
+      setBrands([]);
+    }
+  }
+
   async function loadCalendar() {
     try { const response = await fetch('/api/calendar'); const payload = await response.json(); setScheduledPosts(response.ok ? payload.scheduledPosts ?? [] : []); } catch { setScheduledPosts([]); }
   }
@@ -302,7 +313,7 @@ export default function HomePage() {
         if (!payload.ok) throw new Error((payload.errors ?? ['dry_run_failed']).join(', '));
         posts.push({ at: draft.scheduleMeta?.scheduledAt ?? draft.scheduledAt ?? draft.scheduleMeta?.date ?? null, body: payload.publishText });
       }
-      setDryRunResult({ ok: true, dryRun: true, bufferCalled: false, characterCount: Math.max(...posts.map((post) => post.body.length), 0), limit: MAX_BODY_LENGTH, payload: { brand: selectedBrandConfig.name, week: filteredDrafts[0]?.scheduleMeta?.date ?? null, posts } });
+      setDryRunResult({ ok: true, dryRun: true, bufferCalled: false, characterCount: Math.max(...posts.map((post) => post.body.length), 0), limit: MAX_BODY_LENGTH, payload: { brand: selectedBrandConfig?.name ?? selectedBrand, week: filteredDrafts[0]?.scheduleMeta?.date ?? null, posts } });
       setDryRunMessage('Dry-run completed locally. Buffer untouched.');
     } catch (error) { setDryRunResult(null); setDryRunMessage(error instanceof Error ? error.message : 'Dry-run failed'); } finally { setRunningDryRun(false); }
   }
@@ -341,8 +352,10 @@ export default function HomePage() {
               <div className="space-y-3">
                 <SectionLabel>Select brand</SectionLabel>
                 {brands.map((brand) => {
-                  const meta = brandMeta[brand.slug]; const active = brand.slug === selectedBrand;
-                  return <button key={brand.slug} type="button" onClick={() => setSelectedBrand(brand.slug)} className={cx('flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left transition', active ? 'border-[#2d2b29] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.06)]' : 'border-[#ddd4c8] bg-[#fbfaf7] hover:bg-white')}><div className="flex h-11 w-11 items-center justify-center rounded-full border border-[#d7d0c5] bg-[#f0ede7] text-sm font-semibold text-[#4c443a]">{meta.initials}</div><div className="min-w-0"><div className="truncate text-base font-semibold">{brand.name}</div><div className="truncate text-xs tracking-[0.16em] text-[#7c7267]">{meta.short}</div></div></button>;
+                  const active = brand.slug === selectedBrand;
+                  const initials = brand.name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('') || brand.slug.slice(0, 2).toUpperCase();
+                  const short = brand.slug.replace(/-/g, ' ').toUpperCase();
+                  return <button key={brand.slug} type="button" onClick={() => setSelectedBrand(brand.slug)} className={cx('flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left transition', active ? 'border-[#2d2b29] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.06)]' : 'border-[#ddd4c8] bg-[#fbfaf7] hover:bg-white')}><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#d7d0c5] bg-[#f0ede7] text-sm font-semibold text-[#4c443a]">{initials}</div><div className="min-w-0"><div className="truncate text-base font-semibold">{brand.name}</div><div className="truncate text-xs tracking-[0.16em] text-[#7c7267]">{short}</div></div></button>;
                 })}
                 <div className="rounded-2xl border border-[#ddd4c8] bg-[#fffdfa] px-4 py-3 text-sm text-[#4d443a]"><div className="font-semibold text-[#302920]">Buffer destination</div><div className="mt-1">{selectedBufferMapping ? `Mapped to ${selectedBufferMapping.channelName ?? selectedBufferMapping.channelId}` : 'No Buffer mapping yet.'}</div></div>
                 <ActionButton onClick={() => void handleConnectBuffer()}>Connect Buffer</ActionButton>

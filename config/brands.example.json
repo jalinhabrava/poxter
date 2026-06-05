@@ -1,0 +1,11 @@
+{
+  "brands": [
+    {
+      "slug": "demo-brand",
+      "name": "Demo Brand",
+      "description": "Example publishing brand used for local testing.",
+      "timezone": "Europe/Madrid",
+      "platforms": ["x"]
+    }
+  ]
+}

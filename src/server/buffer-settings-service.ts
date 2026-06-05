@@ -1,6 +1,6 @@
 import { prisma } from './week-plan-import-service';
 import { isBufferConfigured, listChannels, verifyConnection } from '../integrations/buffer/client';
-import { brands } from '../domain/brand-config';
+import { getBrandRegistry } from '../domain/brand-config';
 
 const brandAliases: Record<string, string[]> = {
   textifai: ['textifai'],
@@ -44,7 +44,7 @@ export async function refreshBufferChannels() {
       create: { channelId: channel.id, channelName: channel.name ?? null, payload: JSON.stringify(channel) }
     });
   }
-  for (const brand of brands) {
+  for (const brand of getBrandRegistry()) {
     const existing = await prisma.bufferChannelMapping.findUnique({ where: { brandSlug: brand.slug } });
     if (existing) continue;
     const match = channels.find((channel) => matchesBrand(channel, brand.slug, brand.name));

@@ -23,7 +23,7 @@ PoXter is close to publishable, but not OSS-ready yet. Core safety is decent: dr
 | Governance | No `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md` | Contributor and security process missing | Add standard community files |
 | CI | No `.github/workflows` or issue/PR templates | Public project lacks automated checks | Add CI and minimal templates |
 | Docs | README lacks explicit Node/pnpm version and full OSS setup notes | New contributors may fail setup | Document runtime, install, DB, seed, test, build |
-| Privacy | Demo brands still include `TextifAI`, `OnT`, `David Bitcoinpendium` | Private context leaks into public default data | Replace with generic demo seed or make private examples opt-in |
+| Privacy | Demo brands still include `TextifAI`, `OnT`, `David Bitcoinpendium` | Private context leaks into public default data | Replace public defaults with generic demo config and keep private examples local-only |
 | Paths | Hardcoded `/home/david/projects/poxter` in scripts/docs/package.json | Breaks on other machines | Replace with relative paths or env-driven defaults |
 
 ## Recommended changes before public release
@@ -108,3 +108,8 @@ Notes:
 **RECOMMENDATION: public_after_cleanup**
 
 PoXter is structurally close, but not ready for public release until license, governance, CI, portability, and private-context cleanup land.
+
+## OSR-1 update
+
+- Brand registry now resolves from env override, local private file, or public demo config.
+- Private brands no longer need to exist in public defaults.

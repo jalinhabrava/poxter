@@ -1,16 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import { validateWeekPlanContract } from '../domain/week-plan-contract';
-import { brands } from '../domain/brand-config';
+import { ensureBrands } from './brand-registry-service';
+
+export { ensureBrands } from './brand-registry-service';
 
 type ImportMode = 'upsert_by_external_id' | 'replace_week';
 
 const prisma = new PrismaClient();
-
-export async function ensureBrands() {
-  for (const brand of brands) {
-    await prisma.brand.upsert({ where: { slug: brand.slug }, update: { name: brand.name }, create: brand });
-  }
-}
 
 function asArray(value: unknown) {
   return Array.isArray(value) ? value : [];

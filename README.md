@@ -33,3 +33,17 @@ Notes:
 - `BUFFER_API_KEY` optional unless testing Buffer features.
 - Local import, review, and dry-run flows do not call Buffer.
 - Never commit `.env`, `.local/`, database files, or API keys.
+
+## Configuring brands
+
+Brand resolution order:
+
+- `POXTER_BRANDS_FILE`
+- `~/.config/poxter/brands.local.json`
+- `config/brands.example.json`
+
+Notes:
+
+- Keep private brand config outside repo.
+- Existing private installs stay working without DB reset.
+- Week-plan JSON must use configured `brand.slug` and matching `brand.name`.
