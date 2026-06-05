@@ -6,7 +6,7 @@ ASSESSMENT: poxter-rename-ready
 
 - Old app name: Social Controller
 - New app name: PoXter
-- Old local path: /home/david/projects/social-controller-rebuild
+- Old local path: /home/david/projects/poxter
 - New local path: /home/david/projects/poxter
 - Old GitHub repo: jalinhabrava/social-controller
 - New GitHub repo: jalinhabrava/poxter
@@ -15,7 +15,7 @@ ASSESSMENT: poxter-rename-ready
 
 ## Env Note
 
-- Legacy env path kept for now: `~/.config/social-controller/env`
+- Legacy env path kept for now: `~/.config/poxter/env`
 - Local `.env` DATABASE_URL updated to `file:/home/david/projects/poxter/dev.db` for verification after folder move.
 
 ## Verification
