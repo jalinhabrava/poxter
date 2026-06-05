@@ -81,9 +81,9 @@ Result:
 
 ## Final recommendation
 
-`safe_to_publish_now`
+`public_after_minor_cleanup`
 
-Assessment: `osr-public-ready`
+Assessment: `osr-public-ready-with-minor-followups`
 
 Notes:
 - keep repository private until explicit visibility change is requested

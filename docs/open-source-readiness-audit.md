@@ -2,7 +2,7 @@
 
 ## Executive summary
 
-**PUBLIC_RELEASE_READY: yes**
+**PUBLIC_RELEASE_READY: yes_after_minor_cleanup**
 
 PoXter now has the OSS baseline: license, community docs, CI, issue/PR templates, portable paths, and a public-facing README. Private brand fixtures were removed from active repo content; remaining work is deployment hardening before any public exposure.
 
@@ -44,7 +44,7 @@ Notes:
 
 ## Final recommendation
 
-**RECOMMENDATION: safe_to_publish_now**
+**RECOMMENDATION: public_after_minor_cleanup**
 
 PoXter meets the public open-source prep baseline. Keep repo private until the requested visibility flip is performed separately.
 
@@ -56,8 +56,8 @@ PoXter meets the public open-source prep baseline. Keep repo private until the r
 
 ### Results
 
-- `PUBLIC_RELEASE_READY: yes`
-- `RECOMMENDATION: safe_to_publish_now`
+- `PUBLIC_RELEASE_READY: yes_after_minor_cleanup`
+- `RECOMMENDATION: public_after_minor_cleanup`
 
 ### Scan summary
 
@@ -68,7 +68,7 @@ PoXter meets the public open-source prep baseline. Keep repo private until the r
 - Active brand fixtures and UI tests use generic demo names only.
 - `config/brands.example.json` uses only `Demo Brand`, so private brands are not active defaults.
 - README and SECURITY already warn about local-first use, Buffer gating, and public exposure hardening.
-- CI workflow now installs pnpm before setup-node cache resolution and uses Node 22 for pnpm 11 compatibility.
+- CI workflow now installs pnpm before setup-node cache resolution and uses Node 22 for pnpm 11 compatibility; latest post-push CI still fails in draft review tests.
 - `pnpm check:poxter` passed.
 - No Buffer call happened.
 
