@@ -12,10 +12,11 @@ Exact root cause:
 - workflow used `actions/setup-node@v4` with `cache: pnpm`
 - runner did not have `pnpm` available yet
 - cache setup failed with `Unable to locate executable file: pnpm`
+- after installing pnpm, Node 20 was still too old for pnpm 11
 
 ## CI fix
 
-Updated `.github/workflows/ci.yml` to install `pnpm@11.3.0` with `pnpm/action-setup@v4` before `actions/setup-node@v4` runs cache resolution.
+Updated `.github/workflows/ci.yml` to install `pnpm@11.3.0` with `pnpm/action-setup@v4` before `actions/setup-node@v4` runs cache resolution, and switched GitHub Actions Node to 22 for pnpm 11 compatibility.
 
 Result:
 - CI no longer depends on preinstalled `pnpm`
@@ -81,6 +82,8 @@ Result:
 ## Final recommendation
 
 `safe_to_publish_now`
+
+Assessment: `osr-public-ready`
 
 Notes:
 - keep repository private until explicit visibility change is requested
