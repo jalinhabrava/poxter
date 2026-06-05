@@ -56,13 +56,13 @@ describe('draft review workflow', () => {
     expect(result.publishText).not.toContain('Secret title');
   });
 
-  it('280 chars valid', () => {
-    const result = buildPublishText({ body: 'x'.repeat(280), platform: 'x' });
+  it('140 chars valid', () => {
+    const result = buildPublishText({ body: 'x'.repeat(140), platform: 'x' });
     expect(result.ok).toBe(true);
   });
 
-  it('281 chars invalid', () => {
-    const result = buildPublishText({ body: 'x'.repeat(281), platform: 'x' });
+  it('141 chars invalid', () => {
+    const result = buildPublishText({ body: 'x'.repeat(141), platform: 'x' });
     expect(result.ok).toBe(false);
     expect(result.errors).toContain('body.too_long');
   });

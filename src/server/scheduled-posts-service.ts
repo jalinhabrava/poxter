@@ -35,6 +35,7 @@ export async function persistScheduledPost(input: {
     data: {
       brandSlug,
       draftId,
+      bufferPostId: externalId,
       title,
       body,
       scheduledAt,

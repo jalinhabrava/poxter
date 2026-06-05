@@ -58,18 +58,28 @@ model SafetyWarning {
 
 model BufferChannelMapping {
   id        String   @id @default(cuid())
+  brandSlug String   @unique
+  channelId String
+  channelName String?
+  payload   String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model BufferChannelCache {
   id        String   @id @default(cuid())
+  channelId String   @unique
+  channelName String?
+  payload   String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ScheduledPost {
   id             String   @id @default(cuid())
   brandSlug      String
   draftId        String?
+  bufferPostId   String?  @unique
   title          String
   body           String
   scheduledAt    DateTime
@@ -80,5 +90,12 @@ model ScheduledPost {
 
 model PublishActionLog {
   id        String   @id @default(cuid())
+  brandSlug String?
+  draftId   String?
+  action    String
+  status    String
+  source    String?
+  payload   String?
+  error     String?
   createdAt DateTime @default(now())
 }

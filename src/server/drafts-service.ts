@@ -49,6 +49,15 @@ export async function setDraftStatus(id: string, status: DraftStatus) {
   return { ok: true as const, draft: toDraftDto(draft) };
 }
 
+export async function bulkSetDraftStatus(brandSlug: string, status: Extract<DraftStatus, 'approved' | 'rejected'>) {
+  if (!brandSlug) return { ok: false as const, status: 400, errors: ['brandSlug'] };
+  const brand = await prisma.brand.findUnique({ where: { slug: brandSlug } });
+  if (!brand) return { ok: false as const, status: 404, errors: ['brand.slug'] };
+  const result = await prisma.draft.updateMany({ where: { brandId: brand.id }, data: { status } });
+  const drafts = await prisma.draft.findMany({ where: { brandId: brand.id }, include: { brand: true }, orderBy: { createdAt: 'asc' } });
+  return { ok: true as const, updated: result.count, drafts: drafts.map(toDraftDto) };
+}
+
 export async function dryRunDraft(id: string) {
   const draft = await prisma.draft.findUnique({ where: { id }, include: { brand: true } });
   if (!draft) return { ok: false as const, status: 404, errors: ['draft.id'] };

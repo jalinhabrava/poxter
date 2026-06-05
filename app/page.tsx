@@ -20,6 +20,7 @@ type Draft = {
     date?: string;
     time_local?: string;
     timezone?: string;
+    scheduledAt?: string | null;
   } | null;
   sourceContext: unknown;
 };
@@ -53,6 +54,13 @@ type ScheduledPost = {
   externalStatus: string;
   payload: unknown;
   createdAt: string;
+};
+
+type BufferSettings = {
+  ok: boolean;
+  configured: boolean;
+  mappings: Array<{ brandSlug: string; channelId: string; channelName: string | null }>;
+  channels: Array<{ id: string; name: string | null }>;
 };
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error';
@@ -136,6 +144,7 @@ export default function HomePage() {
   const [dryRunMessage, setDryRunMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'editor' | 'preview'>('editor');
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
+  const [bufferSettings, setBufferSettings] = useState<BufferSettings | null>(null);
 
   const selectedBrandConfig = brands.find((brand) => brand.slug === selectedBrand) ?? brands[0];
   const filteredDrafts = useMemo(() => (
@@ -151,12 +160,14 @@ export default function HomePage() {
   const rejectedCount = useMemo(() => drafts.filter((draft) => draft.status === 'rejected').length, [drafts]);
   const draftCount = useMemo(() => drafts.filter((draft) => draft.status === 'draft' || draft.status === 'needs_review').length, [drafts]);
   const allReviewed = drafts.length > 0 && drafts.every((draft) => draft.status === 'approved' || draft.status === 'rejected');
+  const allReviewedVisible = filteredDrafts.length > 0 && filteredDrafts.every((draft) => draft.status === 'approved' || draft.status === 'rejected');
   const bodyCount = editorBody.length;
   const bodyOverLimit = bodyCount > MAX_BODY_LENGTH;
   const canSave = Boolean(selectedDraft) && !saving;
-  const canRunDryRun = allReviewed && drafts.length > 0 && !runningDryRun;
-  const canSchedule = Boolean(dryRunResult?.ok);
+  const canRunDryRun = allReviewedVisible && filteredDrafts.length > 0 && !runningDryRun;
+  const canSchedule = Boolean(dryRunResult?.ok) && allReviewedVisible;
   const visibleScheduledPosts = useMemo(() => scheduledPosts.filter((post) => post.brandSlug === selectedBrand), [scheduledPosts, selectedBrand]);
+  const selectedBufferMapping = bufferSettings?.mappings?.find((item) => item.brandSlug === selectedBrand) ?? null;
   const workflowSteps: WorkflowStep[] = [
     { label: 'Import', detail: importMessage ?? 'Week plan imported', done: drafts.length > 0 },
     { label: 'Review drafts', detail: allReviewed ? 'All drafts reviewed' : 'Approve or reject all drafts', done: allReviewed },
@@ -171,6 +182,10 @@ export default function HomePage() {
   useEffect(() => {
     void loadCalendar();
   }, []);
+
+  useEffect(() => {
+    void loadBufferSettings();
+  }, [selectedBrand]);
 
   useEffect(() => {
     if (!selectedDraft) {
@@ -225,6 +240,17 @@ export default function HomePage() {
       setScheduledPosts(payload.scheduledPosts ?? []);
     } catch {
       setScheduledPosts([]);
+    }
+  }
+
+  async function loadBufferSettings() {
+    try {
+      const response = await fetch('/api/settings/buffer');
+      const payload = await response.json();
+      if (!response.ok) throw new Error((payload.errors ?? ['buffer_load_failed']).join(', '));
+      setBufferSettings(payload);
+    } catch {
+      setBufferSettings(null);
     }
   }
 
@@ -300,11 +326,8 @@ export default function HomePage() {
   }
 
   async function handleBulkStatus(status: 'approve' | 'reject') {
-    const targets = drafts.filter((draft) => draft.status !== (status === 'approve' ? 'approved' : 'rejected'));
-    for (const draft of targets) {
-      await postJson(`/api/drafts/${draft.id}/${status}`);
-    }
-    setActionMessage(status === 'approve' ? 'All drafts approved.' : 'All drafts rejected.');
+    await postJson(status === 'approve' ? '/api/drafts/bulk-approve' : '/api/drafts/bulk-reject', { brandSlug: selectedBrand });
+    setActionMessage(status === 'approve' ? 'All visible drafts approved.' : 'All visible drafts rejected.');
     setDryRunResult(null);
     await loadDrafts(selectedBrand);
   }
@@ -315,7 +338,7 @@ export default function HomePage() {
     setDryRunMessage(null);
     try {
       const posts = [] as DryRunResult['payload']['posts'];
-      for (const draft of drafts.filter((item) => item.status === 'approved')) {
+      for (const draft of filteredDrafts.filter((item) => item.status === 'approved')) {
         const payload = await postJson<{
           ok: boolean;
           dryRun: true;
@@ -327,7 +350,7 @@ export default function HomePage() {
           draft: Draft;
         }>(`/api/drafts/${draft.id}/dry-run`);
         if (!payload.ok) throw new Error((payload.errors ?? ['dry_run_failed']).join(', '));
-        posts.push({ at: draft.scheduleMeta?.date ?? draft.scheduledAt, body: payload.publishText });
+        posts.push({ at: draft.scheduleMeta?.scheduledAt ?? draft.scheduledAt ?? draft.scheduleMeta?.date ?? null, body: payload.publishText });
       }
       setDryRunResult({
         ok: true,
@@ -337,7 +360,7 @@ export default function HomePage() {
         limit: MAX_BODY_LENGTH,
         payload: {
           brand: selectedBrandConfig.name,
-          week: drafts[0]?.scheduleMeta?.date ?? null,
+          week: filteredDrafts[0]?.scheduleMeta?.date ?? null,
           posts
         }
       });
@@ -350,10 +373,49 @@ export default function HomePage() {
     }
   }
 
-  function handleSchedule() {
+  async function handleRefreshChannels() {
+    try {
+      await postJson('/api/settings/buffer/refresh-channels');
+      await loadBufferSettings();
+      setActionMessage('Buffer channels refreshed.');
+    } catch (error) {
+      setActionMessage(error instanceof Error ? error.message : 'Channel refresh failed');
+    }
+  }
+
+  async function handleMappingChange(channelId: string) {
+    try {
+      await postJson('/api/settings/buffer', { brandSlug: selectedBrand, channelId });
+      await loadBufferSettings();
+      setActionMessage('Buffer destination saved.');
+    } catch (error) {
+      setActionMessage(error instanceof Error ? error.message : 'Mapping save failed');
+    }
+  }
+
+  async function handleSchedule() {
     if (!canSchedule) return;
-    setActionMessage('Scheduling not wired in this slice. No Buffer call made.');
-    void loadCalendar();
+    try {
+      const payload = await postJson<{ ok: boolean; scheduled?: number }>('/api/scheduled-posts', { action: 'schedule-approved', brandSlug: selectedBrand });
+      setActionMessage(`Scheduled ${payload.scheduled ?? 0} posts.`);
+      await loadCalendar();
+      await loadDrafts(selectedBrand);
+    } catch (error) {
+      setActionMessage(error instanceof Error ? error.message : 'Schedule failed');
+    }
+  }
+
+  async function handleDeleteEverywhere() {
+    if (!selectedDraft) return;
+    try {
+      await postJson(`/api/drafts/${selectedDraft.id}/delete-everywhere`);
+      setActionMessage('Draft deleted from everywhere.');
+      setDryRunResult(null);
+      await loadDrafts(selectedBrand, { resetSelection: true });
+      await loadCalendar();
+    } catch (error) {
+      setActionMessage(error instanceof Error ? error.message : 'Delete failed');
+    }
   }
 
   return (
@@ -379,7 +441,7 @@ export default function HomePage() {
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <StatusPill label={`API: ${apiHealthy ? 'Operational' : 'Error'}`} tone={apiHealthy ? 'ok' : 'warn'} />
-            <StatusPill label="Buffer: Disconnected" tone="muted" />
+            <StatusPill label={`Buffer: ${bufferSettings?.configured ? 'Configured' : 'Disconnected'}`} tone={bufferSettings?.configured ? 'ok' : 'muted'} />
             <StatusPill label={`Drafts: ${drafts.length}`} tone="muted" />
             <StatusPill label={`Errors: ${actionMessage || dryRunMessage ? 1 : 0}`} tone={actionMessage || dryRunMessage ? 'warn' : 'muted'} />
             <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#ddd4c8] bg-white font-semibold text-[#5a5045]">DA</div>
@@ -409,6 +471,20 @@ export default function HomePage() {
                     </button>
                   );
                 })}
+              </div>
+            </Panel>
+
+            <Panel title="Buffer destination">
+              <div className="space-y-3 text-sm text-[#4d443a]">
+                <div>{selectedBufferMapping ? `Mapped to ${selectedBufferMapping.channelName ?? selectedBufferMapping.channelId}` : 'No Buffer mapping yet.'}</div>
+                <ActionButton onClick={() => void handleRefreshChannels()}>Refresh channels</ActionButton>
+                <label className="block text-sm font-semibold text-[#302920]">
+                  Channel
+                  <select aria-label="Buffer channel selector" className="mt-2 w-full rounded-2xl border border-[#dcd3c7] bg-white px-4 py-3 outline-none" value={selectedBufferMapping?.channelId ?? ''} onChange={(event) => void handleMappingChange(event.target.value)}>
+                    <option value="">Select channel</option>
+                    {(bufferSettings?.channels ?? []).map((channel) => <option key={channel.id} value={channel.id}>{channel.name ?? channel.id}</option>)}
+                  </select>
+                </label>
               </div>
             </Panel>
 
@@ -554,8 +630,8 @@ export default function HomePage() {
                 <ActionButton disabled={!selectedDraft} onClick={() => selectedDraft && handleStatus(selectedDraft.id, 'reject')}>Reject</ActionButton>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-3">
-                <ActionButton disabled={drafts.length === 0} onClick={() => void handleBulkStatus('approve')}>Approve all</ActionButton>
-                <ActionButton disabled={drafts.length === 0} onClick={() => void handleBulkStatus('reject')}>Reject all</ActionButton>
+                <ActionButton disabled={filteredDrafts.length === 0} onClick={() => void handleBulkStatus('approve')}>Approve all</ActionButton>
+                <ActionButton disabled={filteredDrafts.length === 0} onClick={() => void handleBulkStatus('reject')}>Reject all</ActionButton>
               </div>
             </Panel>
 
@@ -565,6 +641,7 @@ export default function HomePage() {
                 <GateRow label="Dry-run completed successfully" value={dryRunResult?.ok ? 'OK' : 'Pending'} done={Boolean(dryRunResult?.ok)} />
                 <GateRow label="Ready to schedule" value={canSchedule ? 'Unlocked' : 'Locked'} done={canSchedule} />
               </div>
+              <p className="mt-3 text-sm text-[#6d6255]">Imported date/time: {selectedDraft?.scheduleMeta?.date ?? '—'} {selectedDraft?.scheduleMeta?.time_local ?? ''} {selectedDraft?.scheduleMeta?.timezone ?? ''}</p>
               <button type="button" disabled={!canRunDryRun} onClick={handleDryRun} className="mt-4 w-full rounded-2xl border border-[#d8cec1] bg-[#f3f0ea] px-4 py-4 font-medium disabled:cursor-not-allowed disabled:opacity-50">{runningDryRun ? 'Running dry-run…' : 'Run dry-run'}</button>
               <p className="mt-3 text-sm text-[#6d6255]">Unlocks when every draft is Approved or Rejected.</p>
               {dryRunMessage ? <InlineMessage>{dryRunMessage}</InlineMessage> : null}
@@ -583,13 +660,16 @@ export default function HomePage() {
             </Panel>
 
             <Panel title="Schedule">
-              <button type="button" disabled={!canSchedule} onClick={handleSchedule} className="w-full rounded-2xl border border-[#d8cec1] bg-[#f3f0ea] px-4 py-4 font-medium disabled:cursor-not-allowed disabled:opacity-50">Schedule approved posts</button>
-              <p className="mt-3 text-sm text-[#6d6255]">Unlocks after successful dry-run.</p>
+              <button type="button" disabled={!canSchedule} onClick={() => void handleSchedule()} className="w-full rounded-2xl border border-[#d8cec1] bg-[#f3f0ea] px-4 py-4 font-medium disabled:cursor-not-allowed disabled:opacity-50">Schedule approved posts</button>
+              <p className="mt-3 text-sm text-[#6d6255]">Unlocks after successful dry-run and review.</p>
             </Panel>
 
             <Panel title="Single workflow column">
               <p className="text-sm text-[#4d443a]">Review → dry-run → schedule</p>
               {actionMessage ? <InlineMessage>{actionMessage}</InlineMessage> : null}
+              <div className="mt-3 flex flex-wrap gap-2">
+                <ActionButton disabled={!selectedDraft} onClick={() => void handleDeleteEverywhere()}>Delete from everywhere</ActionButton>
+              </div>
             </Panel>
 
             <Panel title="Scheduled calendar">
