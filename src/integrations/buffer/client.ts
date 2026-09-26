@@ -8,8 +8,8 @@ function getApiKey() {
   return process.env.BUFFER_API_KEY?.trim() ?? '';
 }
 
-async function callBuffer<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
-  const apiKey = getApiKey();
+async function callBuffer<T>(query: string, variables?: Record<string, unknown>, apiKeyOverride?: string, signal?: AbortSignal): Promise<T> {
+  const apiKey = apiKeyOverride?.trim() || getApiKey();
   if (!apiKey) throw new BufferApiError('buffer.api_key_missing', 400);
   const response = await fetch('https://api.buffer.com', {
     method: 'POST',
@@ -17,6 +17,7 @@ async function callBuffer<T>(query: string, variables?: Record<string, unknown>)
       'content-type': 'application/json',
       authorization: `Bearer ${apiKey}`
     },
+    signal,
     body: JSON.stringify({ query, variables })
   });
   if (response.status === 429) {
@@ -34,17 +35,18 @@ export async function listChannels() {
   logBufferRequest('listChannels');
   const accountData = await callBuffer<{ account?: { organizations?: Array<{ id: string; name?: string | null }> | null } | null }>(ACCOUNT_ORGANIZATIONS_QUERY);
   const organizations = accountData.account?.organizations ?? [];
-  const channels = [] as Array<{ id: string; name?: string | null; service?: string | null; organizationId: string }>;
+  const channels = [] as Array<{ id: string; name?: string | null; service?: string | null; organizationId: string; organizationName: string | null }>;
   for (const organization of organizations) {
     const data = await callBuffer<{ channels?: Array<{ id: string; name?: string | null; service?: string | null }> | null }>(LIST_CHANNELS_QUERY, { organizationId: organization.id });
-    channels.push(...(data.channels ?? []).map((channel) => ({ ...channel, organizationId: organization.id })));
+    channels.push(...(data.channels ?? []).map((channel) => ({ ...channel, organizationId: organization.id, organizationName: organization.name ?? null })));
   }
   return channels;
 }
 
-export async function verifyConnection() {
+export async function verifyConnection(apiKeyOverride?: string, signal?: AbortSignal) {
   logBufferRequest('verifyConnection');
-  await callBuffer<{ account?: { organizations?: Array<{ id: string; name?: string | null }> | null } | null }>(ACCOUNT_ORGANIZATIONS_QUERY);
+  const data = await callBuffer<{ account?: { organizations?: Array<{ id: string; name?: string | null }> | null } | null }>(ACCOUNT_ORGANIZATIONS_QUERY, undefined, apiKeyOverride, signal);
+  if (!data.account) throw new BufferApiError('buffer.account_unavailable', 403);
   return true;
 }
 

@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "next dev",
     "dev:poxter": "bash scripts/dev/poxter-dev.sh",
+    "mcp:poxter": "bash scripts/mcp/poxter-mcp.sh",
+    "onboard:bootstrap": "bash scripts/onboarding/bootstrap.sh",
+    "onboard": "bash scripts/onboarding/run.sh",
     "check:poxter": "bash scripts/dev/poxter-check.sh",
     "prisma:generate": "prisma generate",
     "prisma:seed": "node prisma/seed.mjs",
@@ -15,10 +18,13 @@
     "prisma": "node scripts/dev/prisma-wrapper.mjs"
   },
   "dependencies": {
+    "@modelcontextprotocol/server": "^2.1.0",
     "@prisma/client": "^5.22.0",
     "next": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "tsx": "^4.23.15",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.0",

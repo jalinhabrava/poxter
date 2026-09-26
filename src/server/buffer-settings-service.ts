@@ -25,7 +25,7 @@ function parsePayload(payload: string | null) {
 export async function getBufferSettings() {
   const [mappings, channels] = await Promise.all([
     prisma.bufferChannelMapping.findMany({ orderBy: { brandSlug: 'asc' } }),
-    prisma.bufferChannelCache.findMany({ orderBy: { channelName: 'asc' } })
+    prisma.bufferChannelCache.findMany({ orderBy: [{ channelName: 'asc' }, { channelId: 'asc' }] })
   ]);
   return {
     ok: true as const,
@@ -35,7 +35,7 @@ export async function getBufferSettings() {
   };
 }
 
-export async function refreshBufferChannels() {
+export async function refreshBufferChannels(options?: { autoMap?: boolean }) {
   const channels = await listChannels();
   for (const channel of channels) {
     await prisma.bufferChannelCache.upsert({
@@ -44,6 +44,8 @@ export async function refreshBufferChannels() {
       create: { channelId: channel.id, channelName: channel.name ?? null, payload: JSON.stringify(channel) }
     });
   }
+  await prisma.bufferChannelCache.deleteMany({ where: { channelId: { notIn: channels.map((channel) => channel.id) } } });
+  if (options?.autoMap === false) return getBufferSettings();
   for (const brand of getBrandRegistry()) {
     const existing = await prisma.bufferChannelMapping.findUnique({ where: { brandSlug: brand.slug } });
     if (existing) continue;

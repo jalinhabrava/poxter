@@ -36,6 +36,8 @@ Never commit private brand names, channel IDs, `.env`, `.local`, DB files, gener
 
 ## Quickstart
 
+For a chat-guided clone setup, ask Codex to configure PoXter and follow [the onboarding guide](docs/chat-onboarding.md). It prepares the local database, private brands, Buffer connection, channel mappings, and MCP registration. The Buffer key is entered on a private local page.
+
 ```bash
 pnpm install
 pnpm prisma generate
@@ -92,6 +94,26 @@ Use demo brands for public examples. Keep private brands outside repo.
 - `BUFFER_API_KEY` is optional unless you run live Buffer actions.
 - Dry-run and review do not call Buffer.
 - Live scheduling and some delete flows require explicit Buffer access.
+
+## Use PoXter from an MCP chat
+
+The local MCP server exposes onboarding status, brands, drafts, review, week-plan validation/import, calendar records, and Buffer settings. It uses the same SQLite database and brand configuration as the web app. The web app does not need to be running.
+
+Prepare the installation with `pnpm install`, `pnpm prisma generate`, and `pnpm prisma db push`. The server reads `$HOME/.config/poxter/env` through the normal local launcher. Start it manually with `pnpm mcp:poxter` when testing an MCP client.
+
+Register it with Codex using an absolute path to this checkout:
+
+```bash
+codex mcp add poxter -- bash /absolute/path/to/poxter/scripts/mcp/poxter-mcp.sh
+```
+
+For Codex Desktop on Windows with this checkout in WSL, run the same registration from PowerShell, replacing the WSL path and distribution if needed:
+
+```powershell
+codex mcp add poxter -- C:\Windows\System32\wsl.exe -d Ubuntu-22.04 -- bash /home/your-user/projects/poxter/scripts/mcp/poxter-mcp.sh
+```
+
+Open a new Codex chat after registration so the MCP tools are loaded. The `schedule_approved_drafts` tool is the only live Buffer scheduling action; review the approved drafts and request scheduling explicitly before using it. The other editing tools change local PoXter data.
 
 ## License
 

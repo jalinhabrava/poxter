@@ -1,0 +1,9 @@
+# PoXter: onboarding desde el chat
+
+Si el usuario pide configurar un clon de PoXter, sigue [docs/chat-onboarding.md](docs/chat-onboarding.md). El resultado aceptado es: dependencias y base preparadas, marcas privadas persistidas, Buffer verificado y mapeado si el usuario lo quiere, MCP registrado en el Codex que está usando y estado comprobado de nuevo. No publiques ningún post durante el onboarding.
+
+- Ejecuta `bash scripts/onboarding/bootstrap.sh` desde este repositorio y después `corepack pnpm onboard status` en WSL/Linux/macOS. En Windows con el proyecto en WSL, ejecuta esos comandos dentro de la distribución WSL.
+- Pide al usuario el nombre, slug y zona horaria de cada marca; usa `corepack pnpm onboard brand --slug ... --name ... --timezone ...`. No sustituyas configuraciones privadas existentes ni uses marcas de ejemplo como si fueran reales.
+- Para Buffer, usa la herramienta MCP `start_buffer_key_setup` si ya está disponible; si todavía no lo está, ejecuta `corepack pnpm onboard buffer`. Comparte el enlace local y espera a que el usuario introduzca la clave en esa pantalla. No pidas la clave por chat, no la incluyas en comandos, archivos del repositorio o respuestas. Después usa `refresh_buffer_channels` o `corepack pnpm onboard channels`, muestra nombres y números de canal y pide la elección para cada marca antes de guardar el mapeo.
+- Registra el MCP en el host donde corre Codex, usando la ruta absoluta de este clon; en Windows nativo que usa WSL, registra `wsl.exe` como lanzador. Verifica `codex mcp get poxter` y repite `corepack pnpm onboard status`. Si el MCP ya apunta a otro clon, presenta esa diferencia antes de cambiarlo.
+- Un chat iniciado antes del registro no recibe herramientas MCP nuevas. Termina el onboarding con el estado concreto y pide abrir un chat nuevo para usar PoXter como herramienta.

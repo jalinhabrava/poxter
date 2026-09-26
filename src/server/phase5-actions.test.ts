@@ -52,6 +52,7 @@ describe('phase 5 actions', () => {
   });
 
   it('refresh channels calls Buffer once and persists cache', async () => {
+    await prisma.bufferChannelCache.create({ data: { channelId: 'stale-channel', channelName: 'Old channel', payload: '{}' } });
     vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const body = JSON.parse(String(init?.body ?? '{}'));
       if (String(body.query).includes('account')) return Promise.resolve(new Response(JSON.stringify({ data: { account: { organizations: [{ id: 'org-1', name: 'Org 1' }] } } }), { status: 200, headers: { 'content-type': 'application/json' } }));
@@ -61,6 +62,7 @@ describe('phase 5 actions', () => {
     expect(result.channels).toHaveLength(1);
     expect(readBufferRequestLog().filter((item) => item.action === 'listChannels')).toHaveLength(1);
     expect(await prisma.bufferChannelCache.count()).toBe(1);
+    expect((await prisma.bufferChannelCache.findFirst())?.channelId).toBe('ch-1');
   });
 
   it('refresh 429 preserves cache and mapping', async () => {
@@ -70,6 +72,19 @@ describe('phase 5 actions', () => {
     await expect(refreshBufferChannels()).rejects.toThrow();
     expect(await prisma.bufferChannelCache.count()).toBe(1);
     expect((await prisma.bufferChannelMapping.findUniqueOrThrow({ where: { brandSlug: 'textifai' } })).channelId).toBe('ch-old');
+  });
+
+  it('onboarding refresh leaves channel choice to the user', async () => {
+    vi.stubGlobal('fetch', vi.fn((_input, init) => {
+      const body = JSON.parse(String(init?.body ?? '{}'));
+      const data = String(body.query).includes('account')
+        ? { account: { organizations: [{ id: 'org-1', name: 'Org 1' }] } }
+        : { channels: [{ id: 'ch-textifai', name: 'TextifAI', service: 'x' }] };
+      return Promise.resolve(new Response(JSON.stringify({ data }), { status: 200 }));
+    }));
+    const result = await refreshBufferChannels({ autoMap: false });
+    expect(result.channels).toHaveLength(1);
+    expect(result.mappings).toHaveLength(0);
   });
 
   it('live schedule sends body only and persists scheduled state', async () => {
